@@ -1,0 +1,7 @@
+msgpack-python
+numpy
+pandas
+requests
+six
+urllib3
+pytest
