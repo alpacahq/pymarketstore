@@ -1,8 +1,6 @@
-from tempfile import TemporaryFile
 import numpy as np
 import pandas as pd
 import requests
-import struct
 import logging
 
 from . import jsonrpc
@@ -92,16 +90,22 @@ class Client(object):
         reply = self._request('DataService.Query', **query)
         return QueryReply(reply)
 
-    def write(self, np_arr, tbk):
+    def write(self, recarray, tbk):
         data = {}
-        data['header'] = self.get_header(np_arr)
-        data['columnnames'] = np_arr.dtype.names
-        data['columndata'] = self.get_column_data(np_arr, len(np_arr[0][0]))
-        data['length'] = len(np_arr[0][0])
+        data['types'] = [
+            recarray.dtype[name].str.replace('<', '')
+            for name in recarray.dtype.names
+        ]
+        data['names'] = recarray.dtype.names
+        data['data'] = [
+            bytes(memoryview(recarray[name]))
+            for name in recarray.dtype.names
+        ]
+        data['length'] = len(recarray)
         data['startindex'] = {tbk: 0}
-        data['lengths'] = {tbk: len(np_arr[0][0])}
+        data['lengths'] = {tbk: len(recarray)}
         write_request = {}
-        write_request['data'] = data
+        write_request['dataset'] = data
         write_request['isvariablelength'] = False
         writer = {}
         writer['requests'] = [write_request]
@@ -113,26 +117,6 @@ class Client(object):
         reply_obj = self.rpc.codec.loads(reply.content, encoding='utf-8')
         resp = self.rpc.response(reply_obj)
         return resp
-
-    def get_column_data(self, data, length):
-        col_data = []
-        for idx, name in enumerate(data.dtype.names):
-            buf = ''
-            record_type = data.dtype[idx]
-            record_type = str(record_type)[2:5]
-            typestr = "<{}".format(data_type_conv[record_type])
-            for i in data[name][0]:
-                buf += struct.pack(typestr, i)
-            col_data.append(buf)
-        return col_data
-
-    def get_header(self, data):
-        tmp_file = TemporaryFile()
-        np.save(tmp_file, data)
-        tmp_file.seek(0)
-        header = tmp_file.read().split('}')[0] + '}'
-        tmp_file.close()
-        return header
 
     def build_query(self, params):
         reqs = []
