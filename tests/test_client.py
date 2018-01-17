@@ -1,23 +1,26 @@
 import pytest
-from . import client as M
+import pymarketstore as pymkts
+from pymarketstore import jsonrpc
 import numpy as np
+import imp
+imp.reload(pymkts.client)
 
 
 def test_init():
-    p = M.Params('TSLA', '1Min', 'OHLCV', 1500000000, 4294967296)
+    p = pymkts.Params('TSLA', '1Min', 'OHLCV', 1500000000, 4294967296)
     tbk = "TSLA/1Min/OHLCV"
     assert p.tbk == tbk
 
 
 def test_client_init():
-    c = M.Client("http://127.0.0.1:5994/rpc")
+    c = pymkts.Client("http://127.0.0.1:5994/rpc")
     assert c.endpoint == "http://127.0.0.1:5994/rpc"
-    assert isinstance(c.rpc, M.jsonrpc.MsgpackRpcClient)
+    assert isinstance(c.rpc, jsonrpc.MsgpackRpcClient)
 
 
 @pytest.mark.skip
 def test_get_column_data():
-    c = M.Client()
+    c = pymkts.Client()
     length = 2
     dt = [('Epoch', '<i8', (length,)), ('Open', '<f4', (length,)),
           ('High', '<f4', (length,)), ('Low', '<f4', (length,)),
@@ -43,7 +46,7 @@ def test_get_column_data():
 
 @pytest.mark.skip
 def test_get_header():
-    c = M.Client("127.0.0.1:5994")
+    c = pymkts.Client("127.0.0.1:5994")
     length = 2
     dt = [('Epoch', '<i8', (length,)), ('Open', '<f4', (length,)),
           ('High', '<f4', (length,)), ('Low', '<f4', (length,)),
@@ -62,9 +65,9 @@ def test_get_header():
 
 
 def test_build_query():
-    c = M.Client("127.0.0.1:5994")
-    p = M.Params('TSLA', '1Min', 'OHLCV', 1500000000, 4294967296)
-    p2 = M.Params('FORD', '5Min', 'OHLCV', 1000000000, 4294967296)
+    c = pymkts.Client("127.0.0.1:5994")
+    p = pymkts.Params('TSLA', '1Min', 'OHLCV', 1500000000, 4294967296)
+    p2 = pymkts.Params('FORD', '5Min', 'OHLCV', 1000000000, 4294967296)
     query_dict = c.build_query([p, p2])
     test_query_dict = {}
     test_lst = []
@@ -82,3 +85,6 @@ def test_build_query():
     test_lst.append(param_dict2)
     test_query_dict['requests'] = test_lst
     assert query_dict == test_query_dict
+
+    query_dict = c.build_query(p)
+    assert query_dict == {'requests': [param_dict1]}

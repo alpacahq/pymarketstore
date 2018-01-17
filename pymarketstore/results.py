@@ -128,11 +128,9 @@ class QueryReply(object):
             ret.add(elems[catnum])
         return list(ret)
 
-    @property
     def symbols(self):
         return self.get_catkeys(0)
 
-    @property
     def timeframes(self):
         return self.get_catkeys(1)
 

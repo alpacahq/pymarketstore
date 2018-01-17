@@ -8,27 +8,19 @@ class JsonRpcClient(object):
     codec = json
     mimetype = "application/json"
 
-    def __init__(self, endpoint=None, cookies=None):
+    def __init__(self, endpoint=None):
         self._id = 1
         self._endpoint = endpoint
-        self._cookies = cookies
         self._session = requests.Session()
 
     def __getattr__(self, method):
         assert self._endpoint is not None
 
         def call(**kwargs):
-            if self._cookies:
-                return self._session.post(
-                    self._endpoint,
-                    data=self.codec.dumps(self.request(method, **kwargs)),
-                    headers={"Content-Type": self.mimetype},
-                    cookies=self._cookies)
-            else:
-                return self._session.post(
-                    self._endpoint,
-                    data=self.codec.dumps(self.request(method, **kwargs)),
-                    headers={"Content-Type": self.mimetype})
+            return self._session.post(
+                self._endpoint,
+                data=self.codec.dumps(self.request(method, **kwargs)),
+                headers={"Content-Type": self.mimetype})
         return call
 
     def call(self, method, **kwargs):
@@ -53,7 +45,7 @@ class JsonRpcClient(object):
 
         raise Exception('{}:\n{}'.format(
             resp['error']['message'],
-            str(resp['error']['data'])))
+            str(resp['error'].get('data', ''))))
 
 
 class MsgpackRpcClient(JsonRpcClient):
