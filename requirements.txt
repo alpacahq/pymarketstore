@@ -5,3 +5,4 @@ requests
 six
 urllib3
 pytest
+setuptools>=30.0
