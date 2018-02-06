@@ -59,3 +59,10 @@ def test_build_query():
 
     query_dict = c.build_query(p)
     assert query_dict == {'requests': [param_dict1]}
+
+
+@patch('pymarketstore.jsonrpc.MsgpackRpcClient')
+def test_list_symbols(MsgpackRpcClient):
+    c = pymkts.Client()
+    c.list_symbols()
+    assert MsgpackRpcClient().call.called == 1
