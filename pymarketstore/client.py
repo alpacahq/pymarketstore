@@ -143,5 +143,11 @@ class Client(object):
             'requests': reqs,
         }
 
+    def list_symbols(self):
+        reply = self._request('DataService.ListSymbols')
+        if 'Results' in reply.keys():
+            return reply['Results']
+        return []
+
     def __repr__(self):
         return f'Client("{self.endpoint}")'
