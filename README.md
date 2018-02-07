@@ -1,9 +1,10 @@
 # pymarketstore
-Python driver for MarketStore CircleCI
+Python driver for MarketStore
 
 Build Status: ![build status](https://circleci.com/gh/alpacahq/pymarketstore/tree/master.png?971fa5b1079e8af0568db6caf772132c54f04dc2)
 
 Pymarketstore can query and write financial timeseries data from [MarketStore](https://github.com/alpacahq/marketstore)
+Tested with 2.7, 3.3+
 
 ## How to install
 
