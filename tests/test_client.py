@@ -1,7 +1,10 @@
 import pymarketstore as pymkts
 from pymarketstore import jsonrpc
 import numpy as np
-from unittest.mock import patch
+try:
+    from unittest.mock import patch
+except ImportError:
+    from mock import patch
 import imp
 imp.reload(pymkts.client)
 
@@ -15,10 +18,10 @@ def test_init():
 def test_client_init():
     c = pymkts.Client("http://127.0.0.1:5994/rpc")
     assert c.endpoint == "http://127.0.0.1:5994/rpc"
-    assert isinstance(c.rpc, jsonrpc.MsgpackRpcClient)
+    assert isinstance(c.rpc, pymkts.client.MsgpackRpcClient)
 
 
-@patch('pymarketstore.jsonrpc.MsgpackRpcClient')
+@patch('pymarketstore.client.MsgpackRpcClient')
 def test_query(MsgpackRpcClient):
     c = pymkts.Client()
     p = pymkts.Params('BTC', '1Min', 'OHLCV')
@@ -26,7 +29,7 @@ def test_query(MsgpackRpcClient):
     assert MsgpackRpcClient().call.called == 1
 
 
-@patch('pymarketstore.jsonrpc.MsgpackRpcClient')
+@patch('pymarketstore.client.MsgpackRpcClient')
 def test_write(MsgpackRpcClient):
     c = pymkts.Client()
     data = np.array([(1, 0)], dtype=[('Epoch', 'i8'), ('Ask', 'f4')])
@@ -61,7 +64,7 @@ def test_build_query():
     assert query_dict == {'requests': [param_dict1]}
 
 
-@patch('pymarketstore.jsonrpc.MsgpackRpcClient')
+@patch('pymarketstore.client.MsgpackRpcClient')
 def test_list_symbols(MsgpackRpcClient):
     c = pymkts.Client()
     c.list_symbols()

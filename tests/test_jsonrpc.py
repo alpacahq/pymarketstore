@@ -1,6 +1,9 @@
 from pymarketstore import jsonrpc
 import pytest
-from unittest.mock import patch
+try:
+    from unittest.mock import patch
+except ImportError:
+    from mock import patch
 import imp
 imp.reload(jsonrpc)
 

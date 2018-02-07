@@ -63,7 +63,9 @@ class DataSet(object):
 
     def __repr__(self):
         a = self.array
-        return f'DataSet(key={self.key}, shape={a.shape}, dtype={a.dtype})'
+        return 'DataSet(key={}, shape={}, dtype={})'.format(
+            self.key, a.shape, a.dtype,
+        )
 
 
 class QueryResult(object):
@@ -92,7 +94,7 @@ class QueryResult(object):
         content = '\n'.join([
             str(ds) for _, ds in six.iteritems(self.result)
         ])
-        return f'QueryResult({content})'
+        return 'QueryResult({})'.format(content)
 
 
 class QueryReply(object):
@@ -146,4 +148,4 @@ class QueryReply(object):
         content = '\n'.join([
             str(res) for res in self.results
         ])
-        return f'QueryReply({content})'
+        return 'QueryReply({})'.format(content)
