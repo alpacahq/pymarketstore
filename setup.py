@@ -1,10 +1,18 @@
 #!/usr/bin/env python
+
+import ast
+import re
 from setuptools import setup
-from pymarketstore import __version__
+
+_version_re = re.compile(r'__version__\s+=\s+(.*)')
+
+with open('pymarketstore/__init__.py', 'rb') as f:
+    version = str(ast.literal_eval(_version_re.search(
+        f.read().decode('utf-8')).group(1)))
 
 setup(
     name='pymarketstore',
-    version=__version__,
+    version=version,
     description='Marketstore python driver',
     author='Alpaca',
     author_email='oss@alpaca.markets',
@@ -15,6 +23,7 @@ setup(
         'msgpack-python',
         'numpy',
         'requests',
+        'pandas',
         'six',
         'urllib3',
         'pytest',
