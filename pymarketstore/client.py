@@ -1,9 +1,10 @@
+from __future__ import absolute_import
 import numpy as np
 import pandas as pd
 import requests
 import logging
 
-from . import jsonrpc
+from .jsonrpc import JsonRpcClient, MsgpackRpcClient
 from .results import QueryReply
 
 logger = logging.getLogger(__name__)
@@ -23,8 +24,8 @@ def isiterable(something):
 
 def get_rpc_client(codec='msgpack'):
     if codec == 'msgpack':
-        return jsonrpc.MsgpackRpcClient
-    return jsonrpc.JsonRpcClient
+        return MsgpackRpcClient
+    return JsonRpcClient
 
 
 def get_timestamp(value):
@@ -60,10 +61,12 @@ class Params(object):
         return self
 
     def __repr__(self):
-        content = (f'tbk={self.tbk}, start={self.start}, end={self.end}, ' +
-                   f'limit={self.limit}, ' +
-                   f'limit_from_start={self.limit_from_start}')
-        return f'Params({content})'
+        content = ('tbk={}, start={}, end={}, '.format(
+            self.tbk, self.start, self.end,
+        ) +
+            'limit={}, '.format(self.limit) +
+            'limit_from_start={}'.format(self.limit_from_start))
+        return 'Params({})'.format(content)
 
 
 class Client(object):
@@ -150,4 +153,4 @@ class Client(object):
         return []
 
     def __repr__(self):
-        return f'Client("{self.endpoint}")'
+        return 'Client("{}")'.format(self.endpoint)
