@@ -10,10 +10,17 @@ with open('pymarketstore/__init__.py', 'rb') as f:
     version = str(ast.literal_eval(_version_re.search(
         f.read().decode('utf-8')).group(1)))
 
+
+with open('README.md') as readme_file:
+    README = readme_file.read()
+
+
 setup(
     name='pymarketstore',
     version=version,
     description='Marketstore python driver',
+    long_description=README,
+    long_description_content_type='text/markdown',
     author='Alpaca',
     author_email='oss@alpaca.markets',
     url='https://github.com/alpacahq/pymarketstore',
