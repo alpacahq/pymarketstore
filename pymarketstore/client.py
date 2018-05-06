@@ -93,7 +93,7 @@ class Client(object):
         reply = self._request('DataService.Query', **query)
         return QueryReply(reply)
 
-    def write(self, recarray, tbk):
+    def write(self, recarray, tbk, isvariablelength=False):
         data = {}
         data['types'] = [
             recarray.dtype[name].str.replace('<', '')
@@ -109,7 +109,7 @@ class Client(object):
         data['lengths'] = {tbk: len(recarray)}
         write_request = {}
         write_request['dataset'] = data
-        write_request['isvariablelength'] = False
+        write_request['isvariablelength'] = isvariablelength
         writer = {}
         writer['requests'] = [write_request]
         try:
