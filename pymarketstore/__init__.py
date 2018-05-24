@@ -3,4 +3,4 @@ from .client import Client, Params  # noqa
 # alias
 Param = Params  # noqa
 
-__version__ = '0.13'
+__version__ = '0.14'
