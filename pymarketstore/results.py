@@ -25,7 +25,7 @@ def decode_responses(responses):
         array = decode(packed)
         for tbk, start_idx in six.iteritems(packed['startindex']):
             length = packed['lengths'][tbk]
-            key = tbk.split(':')[0]
+            key = str(tbk.split(':')[0])
             array_dict[key] = array[start_idx:start_idx + length]
         results.append(array_dict)
     return results
