@@ -1,6 +1,7 @@
 from ast import literal_eval
-from pymarketstore import results
 import imp
+
+from pymarketstore import results
 imp.reload(results)
 
 

@@ -6,6 +6,7 @@ import logging
 
 from .jsonrpc import JsonRpcClient, MsgpackRpcClient
 from .results import QueryReply
+from .exceptions import SymbolsError
 
 logger = logging.getLogger(__name__)
 
@@ -36,6 +37,14 @@ def get_timestamp(value):
     return pd.Timestamp(value)
 
 
+def flatten_symbols(params):
+    sym_lists = {ss
+                 for p in params
+                 for ss in p.symbols
+                 }
+    return list({s for s in sym_lists})
+
+
 class Params(object):
 
     def __init__(self, symbols, timeframe, attrgroup,
@@ -43,6 +52,7 @@ class Params(object):
                  limit=None, limit_from_start=None):
         if not isiterable(symbols):
             symbols = [symbols]
+        self.symbols = symbols
         self.tbk = ','.join(symbols) + "/" + timeframe + "/" + attrgroup
         self.key_category = None  # server default
         self.start = get_timestamp(start)
@@ -89,9 +99,25 @@ class Client(object):
     def query(self, params):
         if not isiterable(params):
             params = [params]
+
         query = self.build_query(params)
         reply = self._request('DataService.Query', **query)
-        return QueryReply(reply)
+        try:
+            qr = QueryReply(reply)
+        except SymbolsError as e:
+            logger.exception(e)
+            raise SymbolsError(
+                "{}".format(flatten_symbols(params)))
+
+        queried = flatten_symbols(params)
+        returned = qr.symbols()
+        symm_diff = set(queried) ^ set(returned)
+
+        if symm_diff:
+            raise SymbolsError(
+                "{}".format(symm_diff))
+
+        return qr
 
     def write(self, recarray, tbk, isvariablelength=False):
         data = {}
@@ -142,6 +168,7 @@ class Client(object):
             if param.functions is not None:
                 req['functions'] = param.functions
             reqs.append(req)
+
         return {
             'requests': reqs,
         }

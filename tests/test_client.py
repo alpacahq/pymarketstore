@@ -1,11 +1,15 @@
-import pymarketstore as pymkts
-from pymarketstore import jsonrpc
+from unittest.mock import MagicMock
+import pytest
+from ast import literal_eval
 import numpy as np
 try:
     from unittest.mock import patch
 except ImportError:
     from mock import patch
 import imp
+
+import pymarketstore as pymkts
+from pymarketstore.exceptions import SymbolsError
 imp.reload(pymkts.client)
 
 
@@ -25,8 +29,55 @@ def test_client_init():
 def test_query(MsgpackRpcClient):
     c = pymkts.Client()
     p = pymkts.Params('BTC', '1Min', 'OHLCV')
-    c.query(p)
+
+    with pytest.raises(SymbolsError):
+        c.query(p)
+
     assert MsgpackRpcClient().call.called == 1
+
+
+testdata1 = literal_eval(r"""
+{'responses': [{'result': {'data': [b'\xf4\xe8^Z\x00\x00\x00\x000\xe9^Z\x00\x00\x00\x00l\xe9^Z\x00\x00\x00\x00\xa8\xe9^Z\x00\x00\x00\x00\xe4\xe9^Z\x00\x00\x00\x00',
+     b'{\x14\xaeG\x01\xf4\xc5@H\xe1z\x14\xee\xe1\xc5@\x00\x00\x00\x00\x80\xfb\xc5@\x00\x00\x00\x00\x00\x06\xc6@{\x14\xaeG\x01\xfa\xc5@',
+     b'{\x14\xaeG\x01\xf4\xc5@\x00\x00\x00\x00\x00\xf9\xc5@\x00\x00\x00\x00\x00\x06\xc6@\x00\x00\x00\x00\x00\x06\xc6@\x00\x00\x00\x00\x00\xfe\xc5@',
+     b'\x85\xebQ\xb8^\xe0\xc5@H\xe1z\x14\xee\xe1\xc5@\x00\x00\x00\x00\x80\xfb\xc5@R\xb8\x1e\x85+\xf7\xc5@{\x14\xaeG\x01\xfa\xc5@',
+     b'H\xe1z\x14\xee\xe1\xc5@\x00\x00\x00\x00\x00\xf9\xc5@\x00\x00\x00\x00\x00\x06\xc6@{\x14\xaeG\x01\xfa\xc5@\x85\xebQ\xb8\xfe\xfd\xc5@',
+     b'iL\xd2F\xbf\xaf\n@\xfe\xe6\xff49\xfd\x0b@\xe1\x9b\xe8\xeb\xe01\x10@\xaf\xe4\x11y\x1e\xce\xfa?\xd7\xd2\x8a\x0c\xfe\x00\xf9?'],
+    'length': 5,
+    'lengths': {'BTC/1Min/OHLCV:Symbol/Timeframe/AttributeGroup': 5},
+    'names': ['Epoch', 'Open', 'High', 'Low', 'Close', 'Volume'],
+    'startindex': {'BTC/1Min/OHLCV:Symbol/Timeframe/AttributeGroup': 0},
+    'types': ['i8', 'f8', 'f8', 'f8', 'f8', 'f8']}}],
+ 'timezone': 'UTC',
+ 'version': 'dev'}
+""")  # noqa: E501
+
+
+@patch('pymarketstore.client.MsgpackRpcClient')
+def test_query_exception(MsgpackRpcClient):
+    c = pymkts.Client()
+
+    c._request = MagicMock(return_value=testdata1)
+
+    p = pymkts.Params('BTC', '1Min', 'OHLCV')
+    c.query(p)
+
+    p = [pymkts.Params('BTC', '1Min', 'OHLCV')]
+    c.query(p)
+
+    p = pymkts.Params('unknow', '1Min', 'OHLCV')
+    with pytest.raises(SymbolsError):
+        c.query(p)
+
+    p = pymkts.Params(['BTC', 'unknow'], '1Min', 'OHLCV')
+    with pytest.raises(SymbolsError):
+        c.query(p)
+
+    p = [pymkts.Params('BTC', '1Min', 'OHLCV'),
+         pymkts.Params('UNKNOWN', '1Min', 'OHLCV')]
+
+    with pytest.raises(SymbolsError):
+        c.query(p)
 
 
 @patch('pymarketstore.client.MsgpackRpcClient')

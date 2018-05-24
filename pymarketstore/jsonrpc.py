@@ -1,6 +1,7 @@
 import json
 import msgpack
 import requests
+from .exceptions import SymbolsError
 
 
 class JsonRpcClient(object):
@@ -42,6 +43,9 @@ class JsonRpcClient(object):
 
         if 'error' not in resp:
             raise Exception('invalid JSON-RPC protocol: missing error')
+
+        if "No files returned from query parse" in resp['error']['message']:
+            raise SymbolsError(resp['error']['message'])
 
         raise Exception('{}:\n{}'.format(
             resp['error']['message'],
