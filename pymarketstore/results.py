@@ -4,10 +4,13 @@ import six
 
 
 def decode(packed):
+
     dt = np.dtype([
-        (colname, coltype)
+        (colname if isinstance(colname, str) else colname.encode("utf-8"),
+         coltype if isinstance(colname, str) else coltype.encode("utf-8"))
         for colname, coltype in zip(packed['names'], packed['types'])
     ])
+
     array = np.empty((packed['length'],), dtype=dt)
     for idx, name in enumerate(dt.names):
         array[name] = np.frombuffer(packed['data'][idx], dtype=dt[idx])
