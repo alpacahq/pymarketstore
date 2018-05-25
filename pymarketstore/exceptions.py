@@ -1,0 +1,3 @@
+
+class SymbolsError(KeyError):
+    pass

@@ -1,4 +1,6 @@
 from pymarketstore import jsonrpc
+from pymarketstore.exceptions import SymbolsError
+
 import pytest
 try:
     from unittest.mock import patch
@@ -28,4 +30,11 @@ def test_jsonrpc(requests):
         'data': 'something',
     }
     with pytest.raises(Exception):
+        cli.response(resp)
+
+    resp['error'] = {
+        'message': 'No files returned from query parse',
+        'data': 'something',
+    }
+    with pytest.raises(SymbolsError):
         cli.response(resp)
