@@ -152,5 +152,9 @@ class Client(object):
             return reply['Results']
         return []
 
+    def server_version(self):
+        resp = requests.head(self.endpoint)
+        return resp.headers.get('Marketstore-Version')
+
     def __repr__(self):
         return 'Client("{}")'.format(self.endpoint)
