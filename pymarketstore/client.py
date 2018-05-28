@@ -1,11 +1,13 @@
 from __future__ import absolute_import
 import numpy as np
 import pandas as pd
+import re
 import requests
 import logging
 
 from .jsonrpc import JsonRpcClient, MsgpackRpcClient
 from .results import QueryReply
+from .stream import StreamConn
 
 logger = logging.getLogger(__name__)
 
@@ -155,6 +157,11 @@ class Client(object):
     def server_version(self):
         resp = requests.head(self.endpoint)
         return resp.headers.get('Marketstore-Version')
+
+    def stream(self):
+        endpoint = re.sub('^http', 'ws',
+                          re.sub(r'/rpc$', '/ws', self.endpoint))
+        return StreamConn(endpoint)
 
     def __repr__(self):
         return 'Client("{}")'.format(self.endpoint)
