@@ -89,3 +89,14 @@ Pass one or multiple instances of `Params` to `Client.query()`.  It will return 
 You can write a numpy array to the server via `Client.write()` method.  The data parameter must be numpy's [recarray type](https://docs.scipy.org/doc/numpy-dev/reference/generated/numpy.recarray.html) with
 a column named `Epoch` in int64 type at the first column.  `tbk` is the bucket key of the data records.
 
+## List Symbols
+
+`pymkts.Client#list_symbols()`
+
+The list of all symbols stored in the server are returned.
+
+## Server version
+
+`pymkts.Client#server_version()`
+
+Returns a string of Marketstore-Version header from a server response.
