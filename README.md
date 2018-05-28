@@ -100,3 +100,58 @@ The list of all symbols stored in the server are returned.
 `pymkts.Client#server_version()`
 
 Returns a string of Marketstore-Version header from a server response.
+
+## Streaming
+
+If the server supports WebSocket streaming, you can connect to it using
+`pymkts.StreamConn` class.  For convenience, you can call `pymkts.Client#stream()` to obtain the instance with the same server
+information as REST client.
+
+Once you have this instance, you will set up some event handles by
+either `register()` method or `@on()` decorator.  These methods accept
+regular expressions to filter which stream to act on.
+
+To actually connect and start receiving the messages from the server,
+you will call `run()` with the stream names.  By default, it subscribes
+to all by `*/*/*`.
+
+`pymkts.Client#stream()`
+
+Return a `StreamConn` which is a websocket connection to the server.
+
+`pymkts.StreamConn#(endpoint)`
+
+Create a connection instance to the `endpoint` server. The endpoint
+string is a full URL with "ws" or "wss" scheme with the port and path.
+
+`pymkts.StreamConn#register(stream_path, func)`
+`@pymkts.StreamConn#on(stream_path)`
+
+Add a new message handler to the connection.  The function will be called
+with `handler(StreamConn, {"key": "...", "data": {...,}})` if the key
+(time bucket key) matches with the `stream_path` regular expression.
+The `on` method is a decorator version of `register`.
+
+`pymkts.StreamConn#run([stream1, stream2, ...])`
+
+Start communication with the server and go into an indefinite loop. It
+does not return until unhandled exception is raised, in which case the
+connection is closed so you need to implement retry.  Also, since this is
+a blocking method, you may need to run it in a background thread.
+
+
+An example code is as follows.
+
+```
+import pymarketstore as pymkts
+
+conn = pymkts.StreamConn('ws://localhost:5993/ws')
+
+@conn.on(r'^BTC/')
+def on_btc(conn, msg):
+    print('received btc', msg['data'])
+
+conn.run(['BTC/*/*'])  # runs until exception
+
+-> received btc {'Open': 4370.0, 'High': 4372.93, 'Low': 4370.0, 'Close': 4371.74, 'Volume': 3.3880948699999993, 'Epoch': 1507299600}
+```
