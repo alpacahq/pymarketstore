@@ -152,4 +152,6 @@ def on_btc(conn, msg):
     print('received btc', msg['data'])
 
 conn.run(['BTC/*/*'])  # runs until exception
+
+-> received btc {'Open': 4370.0, 'High': 4372.93, 'Low': 4370.0, 'Close': 4371.74, 'Volume': 3.3880948699999993, 'Epoch': 1507299600}
 ```
