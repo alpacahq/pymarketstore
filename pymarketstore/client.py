@@ -4,6 +4,7 @@ import pandas as pd
 import re
 import requests
 import logging
+import six
 
 from .jsonrpc import JsonRpcClient, MsgpackRpcClient
 from .results import QueryReply
@@ -103,7 +104,8 @@ class Client(object):
         ]
         data['names'] = recarray.dtype.names
         data['data'] = [
-            bytes(memoryview(recarray[name]))
+            bytes(buffer(recarray[name])) if six.PY2
+                else bytes(memoryview(recarray[name]))
             for name in recarray.dtype.names
         ]
         data['length'] = len(recarray)
