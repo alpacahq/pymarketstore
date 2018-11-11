@@ -4,7 +4,6 @@ import pandas as pd
 import re
 import requests
 import logging
-import six
 
 from .jsonrpc import JsonRpcClient, MsgpackRpcClient
 from .results import QueryReply
@@ -12,6 +11,9 @@ from .stream import StreamConn
 
 logger = logging.getLogger(__name__)
 
+import sys
+if sys.version_info.major == 3:
+    buffer = memoryview
 
 data_type_conv = {
     '<f4': 'f',
@@ -103,11 +105,7 @@ class Client(object):
             for name in recarray.dtype.names
         ]
         data['names'] = recarray.dtype.names
-        data['data'] = [
-            bytes(buffer(recarray[name])) if six.PY2
-                else bytes(memoryview(recarray[name]))
-            for name in recarray.dtype.names
-        ]
+        data['data'] = [bytes(buffer(recarray[name])) for name in recarray.dtype.names]
         data['length'] = len(recarray)
         data['startindex'] = {tbk: 0}
         data['lengths'] = {tbk: len(recarray)}
