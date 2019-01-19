@@ -135,8 +135,7 @@ class Client(object):
 
         write_request = {}
         write_request['dataset'] = data
-        write_request['isvariablelength'] = isvariablelength
-
+        write_request['is_variable_length'] = isvariablelength
         writer = {}
         writer['requests'] = [write_request]
         try:
