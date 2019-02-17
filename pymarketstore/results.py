@@ -113,16 +113,23 @@ class QueryReply(object):
 
     def df(self):
         """
+        If there's a single result from this query, return its DataFrame.
+
         If the results of this query are one row per symbol, then collapse them
         into a single DataFrame keyed by symbol with columns of the queried
         attribute groups (eg OHLCV -> (Open, High, Low, Close, Volume))
-        """
-        if len(self.first().array) != 1:
-            raise NotImplementedError
 
-        return pd.DataFrame([ds.array.tolist()[0] for ds in self.all().values()],
-                            index=list(self.by_symbols().keys()),
-                            columns=self.first().array.dtype.names)
+        Otherwise, raises NotImplementedError.
+        """
+        if len(self.all()) == 1:
+            return self.first().df()
+        elif len(self.first().array) == 1:
+            return pd.DataFrame([ds.array.tolist()[0] for ds in self.all().values()],
+                                index=list(self.by_symbols().keys()),
+                                columns=self.first().array.dtype.names)
+
+        # otherwise we don't know how to support this
+        raise NotImplementedError
 
     def first(self):
         return self.results[0].first()
