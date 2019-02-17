@@ -9,6 +9,7 @@ import six
 from .jsonrpc import JsonRpcClient, MsgpackRpcClient
 from .results import QueryReply
 from .stream import StreamConn
+from .utils import df_to_recarray, series_to_recarray
 
 logger = logging.getLogger(__name__)
 
@@ -97,6 +98,17 @@ class Client(object):
         return QueryReply(reply)
 
     def write(self, recarray, tbk, isvariablelength=False):
+        if isinstance(recarray, pd.Series):
+            col_name = recarray.name or tbk.split('/')[-1]
+            recarray = series_to_recarray(recarray, col_name=col_name)
+
+        elif isinstance(recarray, pd.DataFrame):
+            recarray = df_to_recarray(recarray)
+
+        elif not isinstance(recarray, np.recarray):
+            raise TypeError('The `recarray` parameter must be a `pd.Series`, '
+                            '`pd.DataFrame`, or a `np.recarray`')
+
         data = {}
         data['types'] = [
             recarray.dtype[name].str.replace('<', '')
