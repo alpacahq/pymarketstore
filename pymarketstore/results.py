@@ -111,6 +111,19 @@ class QueryReply(object):
     def timezone(self):
         return self.reply['timezone']
 
+    def df(self):
+        """
+        If the results of this query are one row per symbol, then collapse them
+        into a single DataFrame keyed by symbol with columns of the queried
+        attribute groups (eg OHLCV -> (Open, High, Low, Close, Volume))
+        """
+        if len(self.first().array) != 1:
+            raise NotImplementedError
+
+        return pd.DataFrame([ds.array.tolist()[0] for ds in self.all().values()],
+                            index=list(self.by_symbols().keys()),
+                            columns=self.first().array.dtype.names)
+
     def first(self):
         return self.results[0].first()
 
