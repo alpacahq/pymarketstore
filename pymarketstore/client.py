@@ -20,6 +20,8 @@ data_type_conv = {
     '<i8': 'q',
 }
 
+TIMEFRAME_RE = re.compile(r'^([0-9]+)(Sec|Min|H|D|W|M|Y)$')
+
 
 def isiterable(something):
     return isinstance(something, (list, tuple, set))
@@ -46,6 +48,11 @@ class Params(object):
                  limit=None, limit_from_start=None):
         if not isiterable(symbols):
             symbols = [symbols]
+
+        if not TIMEFRAME_RE.match(timeframe):
+            raise ValueError('Timeframe must be in the format of '
+                             '^([0-9]+)(Sec|Min|H|D|W|M|Y)$')
+
         self.tbk = ','.join(symbols) + "/" + timeframe + "/" + attrgroup
         self.key_category = None  # server default
         self.start = get_timestamp(start)
