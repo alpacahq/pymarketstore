@@ -2,6 +2,8 @@ import numpy as np
 import pandas as pd
 import six
 
+from collections import defaultdict
+
 
 def decode(packed):
 
@@ -25,34 +27,31 @@ def decode_responses(responses):
         array = decode(packed)
         for tbk, start_idx in six.iteritems(packed['startindex']):
             length = packed['lengths'][tbk]
-            key = str(tbk.split(':')[0])
-            array_dict[key] = array[start_idx:start_idx + length]
+            array_dict[tbk] = array[start_idx:start_idx + length]
         results.append(array_dict)
     return results
 
 
 class DataSet(object):
 
-    def __init__(self, array, key, reply):
+    def __init__(self, array, key, timezone):
         self.array = array
-        self.key = key
-        self.reply = reply
-
-    @property
-    def timezone(self):
-        return self.reply['timezone']
+        self._key = key
+        self.tbk = dict(zip(key.split(':')[1].split('/'),
+                            key.split(':')[0].split('/')))
+        self.timezone = timezone
 
     @property
     def symbol(self):
-        return self.key.split('/')[0]
+        return self.tbk['Symbol']
 
     @property
     def timeframe(self):
-        return self.key.split('/')[1]
+        return self.tbk['Timeframe']
 
     @property
     def attribute_group(self):
-        return self.key.split('/')[2]
+        return self.tbk['AttributeGroup']
 
     def df(self):
         idxname = self.array.dtype.names[0]
@@ -67,88 +66,97 @@ class DataSet(object):
     def __repr__(self):
         a = self.array
         return 'DataSet(key={}, shape={}, dtype={})'.format(
-            self.key, a.shape, a.dtype,
+            self._key, a.shape, a.dtype,
         )
-
-
-class QueryResult(object):
-
-    def __init__(self, result, reply):
-        self.result = {
-            key: DataSet(value, key, reply)
-            for key, value in six.iteritems(result)
-        }
-        self.reply = reply
-
-    @property
-    def timezone(self):
-        return self.reply['timezone']
-
-    def keys(self):
-        return list(self.result.keys())
-
-    def first(self):
-        return self.result[self.keys()[0]]
-
-    def all(self):
-        return self.result
-
-    def __repr__(self):
-        content = '\n'.join([
-            str(ds) for _, ds in six.iteritems(self.result)
-        ])
-        return 'QueryResult({})'.format(content)
 
 
 class QueryReply(object):
 
     def __init__(self, reply):
-        results = decode_responses(reply['responses'])
-        self.results = [QueryResult(result, reply) for result in results]
-        self.reply = reply
+        self._reply = reply
+        self._datasets = {
+            tbk: DataSet(array, tbk, reply['timezone'])
+            for r in decode_responses(reply['responses'])
+            for tbk, array in six.iteritems(r)
+        }
+        self._symbols = defaultdict(dict)
+        self._timeframes = defaultdict(dict)
+        for ds in self._datasets.values():
+            self._symbols[ds.symbol][ds.timeframe] = ds
+            self._timeframes[ds.timeframe][ds.symbol] = ds
+
+        # this if/else is needed for compat with unittest.mock
+        self._default_timeframe = (list(self._timeframes.keys())[0]
+                                   if self._timeframes else None)
 
     @property
     def timezone(self):
-        return self.reply['timezone']
-
-    def first(self):
-        return self.results[0].first()
+        return self._reply['timezone']
 
     def all(self):
-        datasets = {}
-        for result in self.results:
-            datasets.update(result.all())
-        return datasets
+        return self._datasets
+
+    def first(self):
+        return self._datasets[list(self._datasets.keys())[0]]
+
+    def latest_df(self, timeframe=None):
+        """
+        Collapse the most recent bars from each queried symbol into a single
+        DataFrame indexed by symbol with the queried attribute groups as the
+        columns (eg OHLCV -> (Open, High, Low, Close, Volume))
+        """
+        timeframe = timeframe or self._default_timeframe
+        columns = self.first().array.dtype.names
+        symbols = []
+        latest_bars = []
+
+        for ds in self._timeframes[timeframe].values():
+            symbols.append(ds.symbol)
+            latest_bars.append(ds.array[-1].tolist())
+
+        df = pd.DataFrame(latest_bars, index=symbols, columns=columns)
+        if 'Epoch' in columns:
+            df.Epoch = pd.to_datetime(df.Epoch, unit='s', utc=True)
+        return df
 
     def keys(self):
-        keys = []
-        for result in self.results:
-            keys += result.keys()
-        return keys
-
-    def get_catkeys(self, catnum):
-        ret = set()
-        for key in self.keys():
-            elems = key.split('/')
-            ret.add(elems[catnum])
-        return list(ret)
+        return list(self._datasets.keys())
 
     def symbols(self):
-        return self.get_catkeys(0)
+        return list(self._symbols.keys())
+
+    def by_symbols(self, timeframe=None):
+        timeframe = timeframe or self._default_timeframe
+        return {symbol: data[timeframe]
+                for symbol, data in six.iteritems(self._symbols)}
 
     def timeframes(self):
-        return self.get_catkeys(1)
+        return list(self._timeframes.keys())
 
-    def by_symbols(self):
-        datasets = self.all()
-        ret = {}
-        for key, dataset in six.iteritems(datasets):
-            symbol = key.split('/')[0]
-            ret[symbol] = dataset
-        return ret
+    def by_timeframes(self):
+        return self._timeframes
+
+    def __getitem__(self, key):
+        if key in self._datasets:
+            return self._datasets[key]
+        elif key in self._timeframes:
+            return self._timeframes[key]
+        elif key in self._symbols:
+            return self._symbols[key]
+        raise KeyError('unrecognized TimeBucketKey, timeframe, or symbol: {}'
+                       ''.format(key))
+
+    def __contains__(self, key):
+        return (key in self._datasets
+                or key in self._timeframes
+                or key in self._symbols)
+
+    def __iter__(self):
+        return iter(self._datasets.values())
+
+    def __str__(self):
+        dataset_strings = ',\n'.join(str(ds) for ds in self._datasets.values())
+        return "<QueryReply datasets=[{}]>".format(dataset_strings)
 
     def __repr__(self):
-        content = '\n'.join([
-            str(res) for res in self.results
-        ])
-        return 'QueryReply({})'.format(content)
+        return 'QueryReply(reply={!r})'.format(self._reply)

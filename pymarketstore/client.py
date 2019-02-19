@@ -6,6 +6,7 @@ import requests
 import logging
 import six
 
+from ._compat import getfullargspec
 from .jsonrpc import JsonRpcClient, MsgpackRpcClient
 from .results import QueryReply
 from .stream import StreamConn
@@ -13,12 +14,13 @@ from .stream import StreamConn
 logger = logging.getLogger(__name__)
 
 
-data_type_conv = {
+DATA_TYPE_CONV = {
     '<f4': 'f',
     '<f8': 'd',
     '<i4': 'i',
     '<i8': 'q',
 }
+TIMEFRAME_RE = re.compile(r'^([0-9]+)(Sec|Min|H|D|W|M|Y)$')
 
 
 def isiterable(something):
@@ -44,32 +46,95 @@ class Params(object):
     def __init__(self, symbols, timeframe, attrgroup,
                  start=None, end=None,
                  limit=None, limit_from_start=None):
-        if not isiterable(symbols):
-            symbols = [symbols]
-        self.tbk = ','.join(symbols) + "/" + timeframe + "/" + attrgroup
-        self.key_category = None  # server default
-        self.start = get_timestamp(start)
-        self.end = get_timestamp(end)
+        self.symbols = symbols
+        self.timeframe = timeframe
+        self.attrgroup = attrgroup
+        self._key_category = 'Symbol/Timeframe/AttributeGroup'
+
+        self.start = start
+        self.end = end
         self.limit = limit
         self.limit_from_start = limit_from_start
         self.functions = None
 
+    @property
+    def tbk(self):
+        return '/'.join([
+            ','.join(self.symbols),
+            self.timeframe,
+            self.attrgroup,
+        ])
+
+    @property
+    def symbols(self):
+        return self._symbols
+
+    @symbols.setter
+    def symbols(self, symbols):
+        self._symbols = symbols if isiterable(symbols) else [symbols]
+
+    @property
+    def timeframe(self):
+        return self._timeframe
+
+    @timeframe.setter
+    def timeframe(self, timeframe):
+        if not TIMEFRAME_RE.match(timeframe):
+            raise ValueError('Timeframe must be in the format of '
+                             '^([0-9]+)(Sec|Min|H|D|W|M|Y)$')
+
+        self._timeframe = timeframe
+
+    @property
+    def start(self):
+        return self._start
+
+    @start.setter
+    def start(self, start):
+        self._start = get_timestamp(start)
+
+    @property
+    def end(self):
+        return self._end
+
+    @end.setter
+    def end(self, end):
+        self._end = get_timestamp(end)
+
     def set(self, key, val):
-        if not hasattr(self, key):
-            raise AttributeError()
-        if key in ('start', 'end'):
-            setattr(self, key, get_timestamp(val))
-        else:
-            setattr(self, key, val)
+        if key not in getfullargspec(self.__init__).args[1:]:
+            raise AttributeError(key)
+
+        setattr(self, key, val)
         return self
 
+    def to_rpc(self):
+        query = dict(
+            destination=self.tbk,
+            key_category=self._key_category,
+            epoch_start=(None if self.start is None
+                         else int(self.start.value / 10**9)),
+            epoch_end=(None if self.end is None
+                       else int(self.end.value / 10**9)),
+            limit_record_count=(None if self.limit is None
+                                else int(self.limit)),
+            limit_from_start=(None if self.limit_from_start is None
+                              else bool(self.limit_from_start)),
+            functions=self.functions
+        )
+        return {k: v for k, v in six.iteritems(query) if v is not None}
+
     def __repr__(self):
-        content = ('tbk={}, start={}, end={}, '.format(
-            self.tbk, self.start, self.end,
-        ) +
-            'limit={}, '.format(self.limit) +
-            'limit_from_start={}'.format(self.limit_from_start))
-        return 'Params({})'.format(content)
+        return (
+            'Params('
+                'symbols={!r}, timeframe={!r}, attrgroup={!r}, '
+                'start={!r}, end={!r}, '
+                'limit={!r}, limit_from_start={!r}'
+            ')'.format(
+                self.symbols, self.timeframe, self.attrgroup,
+                self.start, self.end,
+                self.limit, self.limit_from_start
+            ))
 
 
 class Client(object):
@@ -81,22 +146,18 @@ class Client(object):
 
     def _request(self, method, **query):
         try:
-            resp = self.rpc.call(method, **query)
-            resp.raise_for_status()
-            rpc_reply = self.rpc.codec.loads(resp.content, encoding='utf-8')
-            return self.rpc.response(rpc_reply)
+            return self.rpc.request(method, **query)
         except requests.exceptions.HTTPError as exc:
             logger.exception(exc)
-            raise
+            raise exc
 
     def query(self, params):
-        if not isiterable(params):
-            params = [params]
-        query = self.build_query(params)
-        reply = self._request('DataService.Query', **query)
+        params = params if isiterable(params) else [params]
+        reply = self._request('DataService.Query',
+                              requests=[p.to_rpc() for p in params])
         return QueryReply(reply)
 
-    def write(self, recarray, tbk, isvariablelength=False):
+    def write(self, recarray, tbk, is_variable_length=False):
         data = {}
         data['types'] = [
             recarray.dtype[name].str.replace('<', '')
@@ -111,48 +172,16 @@ class Client(object):
         data['length'] = len(recarray)
         data['startindex'] = {tbk: 0}
         data['lengths'] = {tbk: len(recarray)}
+
         write_request = {}
         write_request['dataset'] = data
-        write_request['is_variable_length'] = isvariablelength
-        writer = {}
-        writer['requests'] = [write_request]
-        try:
-            reply = self.rpc.call("DataService.Write", **writer)
-        except requests.exceptions.ConnectionError:
-            raise requests.exceptions.ConnectionError(
-                "Could not contact server")
-        reply_obj = self.rpc.codec.loads(reply.content, encoding='utf-8')
-        resp = self.rpc.response(reply_obj)
-        return resp
+        write_request['is_variable_length'] = is_variable_length
 
-    def build_query(self, params):
-        reqs = []
-        if not isiterable(params):
-            params = [params]
-        for param in params:
-            req = {
-                'destination': param.tbk,
-            }
-            if param.key_category is not None:
-                req['key_category'] = param.key_category
-            if param.start is not None:
-                req['epoch_start'] = int(param.start.value / (10 ** 9))
-            if param.end is not None:
-                req['epoch_end'] = int(param.end.value / (10 ** 9))
-            if param.limit is not None:
-                req['limit_record_count'] = int(param.limit)
-            if param.limit_from_start is not None:
-                req['limit_from_start'] = bool(param.limit_from_start)
-            if param.functions is not None:
-                req['functions'] = param.functions
-            reqs.append(req)
-        return {
-            'requests': reqs,
-        }
+        return self.rpc.request("DataService.Write", requests=[write_request])
 
     def list_symbols(self):
         reply = self._request('DataService.ListSymbols')
-        if 'Results' in reply.keys():
+        if 'Results' in reply:
             return reply['Results']
         return []
 

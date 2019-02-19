@@ -42,14 +42,14 @@ testdata2 = literal_eval(r"""
 def test_results():
     reply = results.QueryReply(testdata1)
     assert reply.timezone == 'UTC'
-    assert str(reply) == """QueryReply(QueryResult(DataSet(key=BTC/1Min/OHLCV, shape=(5,), dtype=[('Epoch', '<i8'), ('Open', '<f8'), ('High', '<f8'), ('Low', '<f8'), ('Close', '<f8'), ('Volume', '<f8')])))"""  # noqa
+    assert str(reply) == """<QueryReply datasets=[DataSet(key=BTC/1Min/OHLCV:Symbol/Timeframe/AttributeGroup, shape=(5,), dtype=[('Epoch', '<i8'), ('Open', '<f8'), ('High', '<f8'), ('Low', '<f8'), ('Close', '<f8'), ('Volume', '<f8')])]>"""  # noqa
     assert reply.first().timezone == 'UTC'
     assert reply.first().symbol == 'BTC'
     assert reply.first().timeframe == '1Min'
     assert reply.first().attribute_group == 'OHLCV'
     assert reply.first().df().shape == (5, 5)
     assert list(reply.by_symbols().keys()) == ['BTC']
-    assert reply.keys() == ['BTC/1Min/OHLCV']
+    assert reply.keys() == ['BTC/1Min/OHLCV:Symbol/Timeframe/AttributeGroup']
     assert reply.symbols() == ['BTC']
     assert reply.timeframes() == ['1Min']
 
