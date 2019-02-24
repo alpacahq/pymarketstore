@@ -1,6 +1,7 @@
-import pymarketstore as pymkts
-from pymarketstore import jsonrpc
 import numpy as np
+import pymarketstore as pymkts
+import pytest
+
 try:
     from unittest.mock import patch
 except ImportError:
@@ -9,10 +10,16 @@ import imp
 imp.reload(pymkts.client)
 
 
-def test_init():
+def test_params_init():
     p = pymkts.Params('TSLA', '1Min', 'OHLCV', 1500000000, 4294967296)
     tbk = "TSLA/1Min/OHLCV"
     assert p.tbk == tbk
+
+    for garbage in [None, 0, '', 'fail', 'minutely', 'hourly', 'daily', 'weekly',
+                    'monthly', 'yearly']:
+        with pytest.raises(ValueError) as e:
+            p = pymkts.Params('TSLA', garbage, 'OHLCV')
+        assert 'Timeframe must be a string in the format of' in str(e)
 
 
 def test_client_init():

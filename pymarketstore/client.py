@@ -49,8 +49,8 @@ class Params(object):
         if not isiterable(symbols):
             symbols = [symbols]
 
-        if not TIMEFRAME_RE.match(timeframe):
-            raise ValueError('Timeframe must be in the format of '
+        if not isinstance(timeframe, str) or not TIMEFRAME_RE.match(timeframe):
+            raise ValueError('Timeframe must be a string in the format of '
                              '^([0-9]+)(Sec|Min|H|D|W|M|Y)$')
 
         self.tbk = ','.join(symbols) + "/" + timeframe + "/" + attrgroup
