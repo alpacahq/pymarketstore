@@ -1,7 +1,18 @@
+import pandas as pd
+
 from ast import literal_eval
 from pymarketstore import results
 import imp
 imp.reload(results)
+
+
+def assert_dataframes_equal(got, expected):
+    for i in expected.index:
+        row_bool = expected.loc[i] == got.loc[i]
+        if not row_bool.all():
+            print('got:\n', got.loc[i])
+            print('expected:\n', expected.loc[i])
+            raise AssertionError
 
 
 testdata1 = literal_eval(r"""
@@ -55,3 +66,13 @@ def test_results():
 
     reply = results.QueryReply(testdata2)
     assert str(reply.first().df().index.tzinfo) == 'America/New_York'
+
+    expected = pd.DataFrame([
+        (pd.Timestamp('2018-01-17 06:17:00+00:00'), 11276.0, 11276.0, 11276.0, 11276.0, 1.283),
+        (pd.Timestamp('2018-01-17 06:17:00+00:00'), 1014.0, 1014.0, 1014.0, 1014.0,
+         13.597670090000001),
+    ],
+        columns=['Epoch', 'Open', 'High', 'Low', 'Close', 'Volume'],
+        index=['BTC', 'ETH'],
+    )
+    assert_dataframes_equal(reply.latest_df(), expected)

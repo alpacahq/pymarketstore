@@ -111,25 +111,26 @@ class QueryReply(object):
     def timezone(self):
         return self.reply['timezone']
 
-    def df(self):
+    def latest_df(self):
         """
-        If there's a single result from this query, return its DataFrame.
-
-        If the results of this query are one row per symbol, then collapse them
-        into a single DataFrame keyed by symbol with columns of the queried
-        attribute groups (eg OHLCV -> (Open, High, Low, Close, Volume))
-
-        Otherwise, raises NotImplementedError.
+        Collapse the most recent bars from each queried symbol into a single
+        DataFrame indexed by symbol with the queried attribute groups as the
+        columns (eg OHLCV -> (Open, High, Low, Close, Volume))
         """
-        if len(self.all()) == 1:
-            return self.first().df()
-        elif len(self.first().array) == 1:
-            return pd.DataFrame([ds.array.tolist()[0] for ds in self.all().values()],
-                                index=list(self.by_symbols().keys()),
-                                columns=self.first().array.dtype.names)
+        columns = self.first().array.dtype.names
+        symbols = []
+        latest_bars = []
 
-        # otherwise we don't know how to support this
-        raise NotImplementedError
+        for ds in self.all().values():
+            if ds.symbol in symbols:
+                continue
+            symbols.append(ds.symbol)
+            latest_bars.append(ds.array[-1].tolist())
+
+        df = pd.DataFrame(latest_bars, index=symbols, columns=columns)
+        if 'Epoch' in columns:
+            df.Epoch = pd.to_datetime(df.Epoch, unit='s', utc=True)
+        return df
 
     def first(self):
         return self.results[0].first()
