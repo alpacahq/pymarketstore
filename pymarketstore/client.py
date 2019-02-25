@@ -81,10 +81,7 @@ class Client(object):
 
     def _request(self, method, **query):
         try:
-            resp = self.rpc.call(method, **query)
-            resp.raise_for_status()
-            rpc_reply = self.rpc.codec.loads(resp.content, encoding='utf-8')
-            return self.rpc.response(rpc_reply)
+            return self.rpc.call(method, **query)
         except requests.exceptions.HTTPError as exc:
             logger.exception(exc)
             raise
@@ -117,13 +114,10 @@ class Client(object):
         writer = {}
         writer['requests'] = [write_request]
         try:
-            reply = self.rpc.call("DataService.Write", **writer)
+            return self.rpc.call("DataService.Write", **writer)
         except requests.exceptions.ConnectionError:
             raise requests.exceptions.ConnectionError(
                 "Could not contact server")
-        reply_obj = self.rpc.codec.loads(reply.content, encoding='utf-8')
-        resp = self.rpc.response(reply_obj)
-        return resp
 
     def build_query(self, params):
         reqs = []
