@@ -13,6 +13,10 @@ from .stream import StreamConn
 logger = logging.getLogger(__name__)
 
 
+if six.PY2:
+    memoryview = lambda array: buffer(np.ascontiguousarray(array))
+
+
 data_type_conv = {
     '<f4': 'f',
     '<f8': 'd',
@@ -96,28 +100,15 @@ class Client(object):
         reply = self._request('DataService.Query', **query)
         return QueryReply(reply)
 
-    def write(self, recarray, tbk, isvariablelength=False):
-        data = {}
-        data['types'] = [
-            recarray.dtype[name].str.replace('<', '')
-            for name in recarray.dtype.names
-        ]
-        data['names'] = recarray.dtype.names
-        data['data'] = [
-            bytes(buffer(recarray[name])) if six.PY2
-                else bytes(memoryview(recarray[name]))
-            for name in recarray.dtype.names
-        ]
-        data['length'] = len(recarray)
-        data['startindex'] = {tbk: 0}
-        data['lengths'] = {tbk: len(recarray)}
-        write_request = {}
-        write_request['dataset'] = data
-        write_request['is_variable_length'] = isvariablelength
-        writer = {}
-        writer['requests'] = [write_request]
+    def write(self, data, tbk, isvariablelength=False):
+        if not isinstance(data, (np.ndarray, np.recarray, pd.Series, pd.DataFrame)):
+            raise TypeError('The `data` parameter must be an instance of '
+                            'np.ndarray, np.recarry, pd.Series, or pd.DataFrame')
+
         try:
-            reply = self.rpc.call("DataService.Write", **writer)
+            reply = self.rpc.call("DataService.Write", requests=[
+                _make_write_request(data, tbk, isvariablelength),
+            ])
         except requests.exceptions.ConnectionError:
             raise requests.exceptions.ConnectionError(
                 "Could not contact server")
@@ -167,3 +158,34 @@ class Client(object):
 
     def __repr__(self):
         return 'Client("{}")'.format(self.endpoint)
+
+
+def _make_write_request(data, tbk, isvariablelength):
+    ds = dict(length=len(data),
+              startindex={tbk: 0},
+              lengths={tbk: len(data)})
+
+    if isinstance(data, (np.ndarray, np.recarray)):
+        ds.update(dict(types=[data.dtype[name].str.replace('<', '')
+                              for name in data.dtype.names],
+                       names=data.dtype.names,
+                       data=[bytes(memoryview(data[name]))
+                             for name in data.dtype.names]))
+
+    elif isinstance(data, pd.Series):
+        epoch = data.index.to_numpy(dtype='i8') / 10**9
+        ds.update(dict(types=['i8', data.dtype.str.replace('<', '')],
+                       names=['Epoch', data.name or tbk.split('/')[-1]],
+                       data=[bytes(memoryview(epoch.astype('i8'))),
+                             bytes(memoryview(data.to_numpy()))]))
+
+    elif isinstance(data, pd.DataFrame):
+        epoch = data.index.to_numpy(dtype='i8') / 10**9
+        ds.update(dict(types=['i8'] + [dtype.str.replace('<', '')
+                                       for dtype in data.dtypes],
+                       names=['Epoch'] + data.columns.to_list(),
+                       data=[bytes(memoryview(epoch.astype('i8')))] + [
+                           bytes(memoryview(data[name].to_numpy()))
+                           for name in data.columns]))
+
+    return dict(dataset=ds, is_variable_length=isvariablelength)
