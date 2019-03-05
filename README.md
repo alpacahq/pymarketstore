@@ -5,7 +5,7 @@ Build Status: ![build status](https://circleci.com/gh/alpacahq/pymarketstore/tre
 
 Pymarketstore can query and write financial timeseries data from [MarketStore](https://github.com/alpacahq/marketstore)
 
-Tested with 2.7, 3.3+
+Tested with Python 2.7, 3.5+
 
 ## How to install
 
@@ -68,43 +68,48 @@ Construct a client object with endpoint.
 
 ## Query
 
-`pymkts.Client#query(symbols, timeframe, attrgroup, start=None, end=None, limit=None, limit_from_start=False)`
+`pymkts.Client.query(symbols, timeframe, attrgroup, start=None, end=None, limit=None, limit_from_start=False)`
 
 You can build parameters using `pymkts.Params`.
 
-- symbols: string for a single symbol or a list of symbol string for multi-symbol query
-- timeframe: timeframe string
-- attrgroup: attribute group string.  symbols, timeframe and attrgroup compose a bucket key to query in the server
-- start: unix epoch second (int), datetime object or timestamp string. The result will include only data timestamped equal to or after this time.
-- end: unix epoch second (int), datetime object or timestamp string.  The result will include only data timestamped equal to or before this time.
-- limit: the number of records to be returned, counting from either start or end boundary.
-- limit_from_start: boolean to indicate `limit` is from the start boundary.  Defaults to False.
+- `symbols`: string for a single symbol or a list of symbol string for multi-symbol query
+- `timeframe`: timeframe string
+- `attrgroup`: attribute group string.  symbols, timeframe and attrgroup compose a bucket key to query in the server
+- `start`: unix epoch second (int), datetime object or timestamp string. The result will include only data timestamped equal to or after this time.
+- `end`: unix epoch second (int), datetime object or timestamp string.  The result will include only data timestamped equal to or before this time.
+- `limit`: the number of records to be returned, counting from either start or end boundary.
+- `limit_from_start`: boolean to indicate `limit` is from the start boundary.  Defaults to `False`.
 
 Pass one or multiple instances of `Params` to `Client.query()`.  It will return `QueryReply` object which holds internal numpy array data returned from the server.
 
 ## Write
 
-`pymkts.Client#write(data, tbk)`
+`pymkts.Client.write(data, tbk)`
 
-You can write a numpy array to the server via `Client.write()` method.  The data parameter must be numpy's [recarray type](https://docs.scipy.org/doc/numpy-dev/reference/generated/numpy.recarray.html) with
-a column named `Epoch` in int64 type at the first column.  `tbk` is the bucket key of the data records.
+You can write data to the server via `Client.write()` method.
+
+- `data`: Timeseries data to write. The supported data types you can write are:
+    - [np.recarray](https://docs.scipy.org/doc/numpy-dev/reference/generated/numpy.recarray.html) with the first column named `Epoch` in int64 type
+    - [pd.Series](https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.Series.html) with an int64 type index named `Epoch`
+    - [pd.DataFrame](https://pandas.pydata.org/pandas-docs/stable/reference/frame.html) with an int64 type index named `Epoch`
+- `tbk`: the bucket key (as a string) of the data records.
 
 ## List Symbols
 
-`pymkts.Client#list_symbols()`
+`pymkts.Client.list_symbols()`
 
 The list of all symbols stored in the server are returned.
 
 ## Server version
 
-`pymkts.Client#server_version()`
+`pymkts.Client.server_version()`
 
 Returns a string of Marketstore-Version header from a server response.
 
 ## Streaming
 
 If the server supports WebSocket streaming, you can connect to it using
-`pymkts.StreamConn` class.  For convenience, you can call `pymkts.Client#stream()` to obtain the instance with the same server
+`pymkts.StreamConn` class.  For convenience, you can call `pymkts.Client.stream()` to obtain the instance with the same server
 information as REST client.
 
 Once you have this instance, you will set up some event handles by
@@ -115,24 +120,24 @@ To actually connect and start receiving the messages from the server,
 you will call `run()` with the stream names.  By default, it subscribes
 to all by `*/*/*`.
 
-`pymkts.Client#stream()`
+`pymkts.Client.stream()`
 
 Return a `StreamConn` which is a websocket connection to the server.
 
-`pymkts.StreamConn#(endpoint)`
+`pymkts.StreamConn(endpoint)`
 
 Create a connection instance to the `endpoint` server. The endpoint
 string is a full URL with "ws" or "wss" scheme with the port and path.
 
-`pymkts.StreamConn#register(stream_path, func)`
-`@pymkts.StreamConn#on(stream_path)`
+`pymkts.StreamConn.register(stream_path, func)`
+`@pymkts.StreamConn.on(stream_path)`
 
 Add a new message handler to the connection.  The function will be called
 with `handler(StreamConn, {"key": "...", "data": {...,}})` if the key
 (time bucket key) matches with the `stream_path` regular expression.
 The `on` method is a decorator version of `register`.
 
-`pymkts.StreamConn#run([stream1, stream2, ...])`
+`pymkts.StreamConn.run([stream1, stream2, ...])`
 
 Start communication with the server and go into an indefinite loop. It
 does not return until unhandled exception is raised, in which case the
