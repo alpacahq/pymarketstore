@@ -4,6 +4,5 @@ pandas
 requests
 six
 urllib3
-pytest
 setuptools>=28.8.0
 websocket-client
