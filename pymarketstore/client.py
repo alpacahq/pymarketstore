@@ -157,6 +157,11 @@ class Client(object):
         return []
 
     def destroy(self, tbk):
+        """
+        Destroy a time bucket
+        :param tbk: Time Bucket Key Name (i.e. "TEST/1Min/Tick" )
+        :return: reply object
+        """
         destroy_req = {'requests': [{'key': tbk}]}
         reply = self._request('DataService.Destroy', **destroy_req)
         return reply
