@@ -158,7 +158,7 @@ class Client(object):
 
     def destroy(self, tbk):
         """
-        Destroy a bucket
+        Delete a bucket
         :param tbk: Time Bucket Key Name (i.e. "TEST/1Min/Tick" )
         :return: reply object
         """
