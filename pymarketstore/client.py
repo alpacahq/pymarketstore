@@ -156,6 +156,16 @@ class Client(object):
             return reply['Results']
         return []
 
+    def destroy(self, tbk):
+        """
+        Delete a bucket
+        :param tbk: Time Bucket Key Name (i.e. "TEST/1Min/Tick" )
+        :return: reply object
+        """
+        destroy_req = {'requests': [{'key': tbk}]}
+        reply = self._request('DataService.Destroy', **destroy_req)
+        return reply
+
     def server_version(self):
         resp = requests.head(self.endpoint)
         return resp.headers.get('Marketstore-Version')
