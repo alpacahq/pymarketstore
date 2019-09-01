@@ -175,27 +175,43 @@ def _make_write_request(data, tbk, isvariablelength=False):
     return dict(dataset=dataset, is_variable_length=isvariablelength)
 
 
-def _np_array_to_dataset_params(data):
-    return dict(types=[data.dtype[name].str.replace('<', '')
-                       for name in data.dtype.names],
-                names=list(data.dtype.names),
-                data=[bytes(memoryview(data[name]))
-                      for name in data.dtype.names])
+def _np_array_to_dataset_params(array):
+    return dict(types=[array.dtype[name].str.replace('<', '')
+                       for name in array.dtype.names],
+                names=list(array.dtype.names),
+                data=[bytes(memoryview(array[name]))
+                      for name in array.dtype.names])
 
 
-def _pd_series_to_dataset_params(data, tbk):
-    epoch = data.index.to_numpy(dtype='i8') / 10 ** 9
-    return dict(types=['i8', data.dtype.str.replace('<', '')],
-                names=['Epoch', data.name or tbk.split('/')[-1]],
-                data=[bytes(memoryview(epoch.astype('i8'))),
-                      bytes(memoryview(data.to_numpy()))])
+def _pd_series_to_dataset_params(series, tbk):
+    # one row (timestamp) with multiple columns of data (ie named indexes in the array)
+    if isinstance(series.index[0], str):
+        epoch = series.name.to_datetime64().astype(dtype='i8') / 10 ** 9
+        return dict(types=['i8'] + [series.dtype.str.replace('<', '')
+                                    for _ in range(0, len(series))],
+                    names=['Epoch'] + series.index.to_list(),
+                    data=[bytes(memoryview(epoch.astype('i8')))] + [
+                        bytes(memoryview(val)) for val in series.array])
+
+    # many rows (timestamps) of data for the same column
+    else:
+        epoch = series.index.to_numpy(dtype='i8') / 10 ** 9
+        return dict(types=['i8', series.dtype.str.replace('<', '')],
+                    names=['Epoch', series.name or tbk.split('/')[-1]],
+                    data=[bytes(memoryview(epoch.astype('i8'))),
+                          bytes(memoryview(series.to_numpy()))])
 
 
-def _pd_dataframe_to_dataset_params(data):
-    epoch = data.index.to_numpy(dtype='i8') / 10 ** 9
+def _pd_dataframe_to_dataset_params(df):
+    # new_types = df.dtypes.map({
+    #     np.dtype(np.float64): np.float32,
+    #     np.dtype(np.int64): np.int32,
+    # }).to_dict()
+    # df = df.astype(new_types)
+    epoch = df.index.to_numpy(dtype='i8') / 10 ** 9
     return dict(types=['i8'] + [dtype.str.replace('<', '')
-                                for dtype in data.dtypes],
-                names=['Epoch'] + data.columns.to_list(),
+                                for dtype in df.dtypes],
+                names=['Epoch'] + df.columns.to_list(),
                 data=[bytes(memoryview(epoch.astype('i8')))] + [
-                    bytes(memoryview(data[name].to_numpy()))
-                    for name in data.columns])
+                    bytes(memoryview(df[name].to_numpy()))
+                    for name in df.columns])

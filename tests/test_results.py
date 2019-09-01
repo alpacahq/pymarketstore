@@ -1,7 +1,29 @@
+import pandas as pd
+
 from ast import literal_eval
 from pymarketstore import results
 import imp
 imp.reload(results)
+
+
+def assert_dataframes_equal(got, expected):
+    for i in expected.index:
+        row_bool = expected.loc[i] == got.loc[i]
+        if not row_bool.all():
+            print('got:\n', got.loc[i])
+            print('expected:\n', expected.loc[i])
+            raise AssertionError
+
+
+testdata1_df = pd.DataFrame([
+        (pd.Timestamp('2018-01-17 06:11:00+00:00'), 11240.01, 11240.01, 11200.74, 11203.86, 3.335814),
+        (pd.Timestamp('2018-01-17 06:12:00+00:00'), 11203.86, 11250.00, 11203.86, 11250.00, 3.498644),
+        (pd.Timestamp('2018-01-17 06:13:00+00:00'), 11255.00, 11276.00, 11255.00, 11276.00, 4.048710),
+        (pd.Timestamp('2018-01-17 06:14:00+00:00'), 11276.00, 11276.00, 11246.34, 11252.01, 1.675322),
+        (pd.Timestamp('2018-01-17 06:15:00+00:00'), 11252.01, 11260.00, 11252.01, 11259.99, 1.562742),
+    ],
+    columns=['Epoch', 'Open', 'High', 'Low', 'Close', 'Volume'],
+ ).set_index('Epoch')
 
 
 testdata1 = literal_eval(r"""

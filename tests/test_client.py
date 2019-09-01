@@ -14,7 +14,7 @@ else:
     importlib.reload(pymkts.client)
 
 
-from .test_results import btc_array, btc_bytes
+from .test_results import btc_array, btc_bytes,  testdata1_df
 
 
 class TestParams(object):
@@ -104,12 +104,36 @@ class TestWriteRequestDatasetParams(object):
             types=['i8', 'f8', 'f8', 'f8', 'f8', 'f8'],
         )
 
-    def test_pd_series(self):
+    def test_pd_series_indexed_by_timestamp(self):
         series = pd.Series(btc_array['Open'], index=btc_array['Epoch'] * 10**9)
         assert pymkts.client._pd_series_to_dataset_params(series, 'Open') == dict(
             data=[btc_bytes[0], btc_bytes[1]],
             names=['Epoch', 'Open'],
             types=['i8', 'f8'],
+        )
+
+    def test_pd_series_indexed_by_column_name(self):
+        idx = ['Open', 'High', 'Low', 'Close', 'Volume']
+        series = pd.Series([btc_array[col][0] for col in idx], index=idx)
+        series.name = pd.Timestamp(btc_array['Epoch'][0] * 10**9)
+        expected_epoch = series.name.to_datetime64().astype('i8') / 10**9
+        assert pymkts.client._pd_series_to_dataset_params(series, 'BTC/1Min/OHLCV') == dict(
+            data=[bytes(memoryview(expected_epoch.astype('i8')))] + [
+                bytes(memoryview(val)) for val in series.array
+            ],
+            names=['Epoch'] + idx,
+            types=['i8'] + [series.dtype.str.replace('<', '') for _ in range(0, len(series))],
+        )
+
+    def test_pd_series_sliced_from_df(self):
+        series = testdata1_df.iloc[0]
+        expected_epoch = series.name.to_datetime64().astype('i8') / 10**9
+        assert pymkts.client._pd_series_to_dataset_params(series, 'BTC/1Min/OHLCV') == dict(
+            data=[bytes(memoryview(expected_epoch.astype('i8')))] + [
+                bytes(memoryview(val)) for val in series.array
+            ],
+            names=['Epoch'] + testdata1_df.columns.to_list(),
+            types=['i8'] + [series.dtype.str.replace('<', '') for _ in range(0, len(series))],
         )
 
     def test_pd_dataframe(self):
