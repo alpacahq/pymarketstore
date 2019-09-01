@@ -90,6 +90,13 @@ class TestClient(object):
         assert MsgpackRpcClient().call.called == 1
 
     @patch('pymarketstore.client.MsgpackRpcClient')
+    def test_destroy(self, MsgpackRpcClient):
+        c = pymkts.Client()
+        tbk = 'TEST/1Min/TICK'
+        c.destroy(tbk)
+        assert MsgpackRpcClient().call.called == 1
+
+    @patch('pymarketstore.client.MsgpackRpcClient')
     def test_list_symbols(self, MsgpackRpcClient):
         c = pymkts.Client()
         c.list_symbols()
