@@ -72,6 +72,29 @@ class Params(object):
         return 'Params({})'.format(content)
 
 
+class DataShape(object):
+    def __init__(self, name, typ):
+        self.name = name
+        self.typ = typ
+
+
+class DataShapes(object):
+    def __init__(self):
+        self.shapes = dict()
+
+    def add(self, shape):
+        """
+        :type shape: DataShape
+        """
+        self.shapes.setdefault(shape.typ, set())
+        self.shapes[shape.typ].add(shape.name)
+
+    def __str__(self):
+        rtn_strs = []
+        return ':'.join(['%s/%s' % (','.join(sorted(self.shapes[typ])), typ)
+                         for typ in sorted(self.shapes)])
+
+
 class Client(object):
 
     def __init__(self, endpoint='http://localhost:5993/rpc'):
@@ -88,6 +111,23 @@ class Client(object):
         except requests.exceptions.HTTPError as exc:
             logger.exception(exc)
             raise
+
+    def create(self,
+               tbk,
+               datashapes,
+               schema='Symbol/Timeframe/AttributeGroup',
+               row_type="fixed"):
+        """
+        :type datashapes: DataShapes
+        """
+        tbk = '%s:%s' % (tbk, schema)
+        request = {
+            'Key': tbk,
+            'DataShapes': str(datashapes),
+            'RowType': row_type
+        }
+        requests = {'Requests': [request]}
+        return self._request('DataService.Create', **requests)
 
     def query(self, params):
         if not isiterable(params):
@@ -177,3 +217,11 @@ class Client(object):
 
     def __repr__(self):
         return 'Client("{}")'.format(self.endpoint)
+
+
+if __name__ == '__main__':
+    param = Params('BTC', '1Min', 'OHLCV', limit=10)
+    cli = Client()
+    reply = cli.query(param)
+    print(reply)
+

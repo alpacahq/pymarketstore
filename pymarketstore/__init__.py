@@ -1,4 +1,4 @@
-from .client import Client, Params  # noqa
+from .client import Client, Params, DataShape, DataShapes # noqa
 
 # alias
 Param = Params  # noqa
