@@ -103,9 +103,10 @@ class DataShapes(object):
 
 class Client(object):
 
-    def __init__(self, endpoint='http://localhost:5993/rpc'):
+    def __init__(self, endpoint='http://localhost:5993/rpc', codec='msgpack'):
         self.endpoint = endpoint
-        rpc_client = get_rpc_client('msgpack')
+        self.codec = codec
+        rpc_client = get_rpc_client(codec)
         self.rpc = rpc_client(self.endpoint)
 
     def _request(self, method, **query):
@@ -143,6 +144,10 @@ class Client(object):
         return QueryReply(reply)
 
     def write(self, recarray, tbk, isvariablelength=False):
+        if self.codec != 'msgpack':
+            print("Write action only support for msgpack codec")
+            return
+
         data = {}
         data['types'] = [
             recarray.dtype[name].str.replace('<', '')
