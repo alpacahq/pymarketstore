@@ -41,13 +41,19 @@ def get_timestamp(value):
 
 class Params(object):
 
-    def __init__(self, symbols, timeframe, attrgroup,
-                 start=None, end=None,
-                 limit=None, limit_from_start=None):
-        if not isiterable(symbols):
+    def __init__(self, symbols=None, timeframe=None, attrgroup=None,
+                 start=None, end=None, limit=None, limit_from_start=None,
+                 columns=None, is_sqlstatement=None, sql_statement=None):
+        if symbols and not isiterable(symbols):
             symbols = [symbols]
-        self.tbk = ','.join(symbols) + "/" + timeframe + "/" + attrgroup
+        if symbols and timeframe and attrgroup:
+            self.tbk = ','.join(symbols) + "/" + timeframe + "/" + attrgroup
+        else:
+            self.tbk = None
         self.key_category = None  # server default
+        self.is_sqlstatement = is_sqlstatement
+        self.sql_statement = sql_statement
+        self.columns = columns
         self.start = get_timestamp(start)
         self.end = get_timestamp(end)
         self.limit = limit
@@ -185,6 +191,12 @@ class Client(object):
                 req['limit_from_start'] = bool(param.limit_from_start)
             if param.functions is not None:
                 req['functions'] = param.functions
+            if param.columns is not None:
+                req['columns'] = param.columns
+            if param.is_sqlstatement is not None:
+                req['is_sqlstatement'] = param.is_sqlstatement
+            if param.sql_statement is not None:
+                req['sql_statement'] = param.sql_statement
             reqs.append(req)
         return {
             'requests': reqs,
