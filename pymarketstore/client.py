@@ -143,6 +143,10 @@ class Client(object):
         reply = self._request('DataService.Query', **query)
         return QueryReply(reply)
 
+    def sql(self, statement):
+        params = Params(is_sqlstatement=True, sql_statement=statement)
+        return self.query(params)
+
     def write(self, recarray, tbk, isvariablelength=False):
         if self.codec != 'msgpack':
             print("Write action only support for msgpack codec")

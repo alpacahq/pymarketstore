@@ -111,6 +111,12 @@ You can build parameters using `pymkts.Params`.
 
 Pass one or multiple instances of `Params` to `Client.query()`.  It will return `QueryReply` object which holds internal numpy array data returned from the server.
 
+## Sql
+
+`pymkts.Client#sql(statement)`
+
+You can query with raw SQL statements.
+
 ## Write
 
 `pymkts.Client#write(data, tbk)`
