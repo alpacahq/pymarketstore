@@ -112,7 +112,7 @@ class Client(object):
         try:
             resp = self.rpc.call(method, **query)
             resp.raise_for_status()
-            rpc_reply = self.rpc.codec.loads(resp.content, encoding='utf-8')
+            rpc_reply = self.rpc.codec.loads(resp.content)
             return self.rpc.response(rpc_reply)
         except requests.exceptions.HTTPError as exc:
             logger.exception(exc)
@@ -167,7 +167,7 @@ class Client(object):
         except requests.exceptions.ConnectionError:
             raise requests.exceptions.ConnectionError(
                 "Could not contact server")
-        reply_obj = self.rpc.codec.loads(reply.content, encoding='utf-8')
+        reply_obj = self.rpc.codec.loads(reply.content)
         resp = self.rpc.response(reply_obj)
         return resp
 
