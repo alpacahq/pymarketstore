@@ -1,4 +1,5 @@
 import pymarketstore as pymkts
+from pymarketstore import DataShape, DataShapes
 from pymarketstore import jsonrpc
 import numpy as np
 try:
@@ -19,6 +20,31 @@ def test_client_init():
     c = pymkts.Client("http://127.0.0.1:5994/rpc")
     assert c.endpoint == "http://127.0.0.1:5994/rpc"
     assert isinstance(c.rpc, pymkts.client.MsgpackRpcClient)
+
+
+@patch('pymarketstore.client.MsgpackRpcClient')
+def test_create(MsgpackRpcClient):
+    cli = pymkts.Client()
+
+    o = DataShape(name='Open', typ='float64')
+    h = DataShape(name='High', typ='float64')
+    l = DataShape(name='Low', typ='float64')
+    c = DataShape(name='Close', typ='float64')
+    v = DataShape(name='Volume', typ='int64')
+    e = DataShape(name='Epoch', typ='int64')
+
+    shapes = DataShapes()
+    shapes.add(o)
+    shapes.add(h)
+    shapes.add(l)
+    shapes.add(c)
+    shapes.add(v)
+    shapes.add(e)
+
+    assert str(shapes) == 'Close,High,Low,Open/float64:Epoch,Volume/int64'
+
+    cli.create('TSLA/15Min/OHLCV', shapes)
+    assert MsgpackRpcClient().call.called == 1
 
 
 @patch('pymarketstore.client.MsgpackRpcClient')

@@ -41,13 +41,19 @@ def get_timestamp(value):
 
 class Params(object):
 
-    def __init__(self, symbols, timeframe, attrgroup,
-                 start=None, end=None,
-                 limit=None, limit_from_start=None):
-        if not isiterable(symbols):
+    def __init__(self, symbols=None, timeframe=None, attrgroup=None,
+                 start=None, end=None, limit=None, limit_from_start=None,
+                 columns=None, is_sqlstatement=None, sql_statement=None):
+        if symbols and not isiterable(symbols):
             symbols = [symbols]
-        self.tbk = ','.join(symbols) + "/" + timeframe + "/" + attrgroup
+        if symbols and timeframe and attrgroup:
+            self.tbk = ','.join(symbols) + "/" + timeframe + "/" + attrgroup
+        else:
+            self.tbk = None
         self.key_category = None  # server default
+        self.is_sqlstatement = is_sqlstatement
+        self.sql_statement = sql_statement
+        self.columns = columns
         self.start = get_timestamp(start)
         self.end = get_timestamp(end)
         self.limit = limit
@@ -72,22 +78,63 @@ class Params(object):
         return 'Params({})'.format(content)
 
 
+class DataShape(object):
+    def __init__(self, name, typ):
+        self.name = name
+        self.typ = typ
+
+
+class DataShapes(object):
+    def __init__(self):
+        self.shapes = dict()
+
+    def add(self, shape):
+        """
+        :type shape: DataShape
+        """
+        self.shapes.setdefault(shape.typ, set())
+        self.shapes[shape.typ].add(shape.name)
+
+    def __str__(self):
+        rtn_strs = []
+        return ':'.join(['%s/%s' % (','.join(sorted(self.shapes[typ])), typ)
+                         for typ in sorted(self.shapes)])
+
+
 class Client(object):
 
-    def __init__(self, endpoint='http://localhost:5993/rpc'):
+    def __init__(self, endpoint='http://localhost:5993/rpc', codec='msgpack'):
         self.endpoint = endpoint
-        rpc_client = get_rpc_client('msgpack')
+        self.codec = codec
+        rpc_client = get_rpc_client(codec)
         self.rpc = rpc_client(self.endpoint)
 
     def _request(self, method, **query):
         try:
             resp = self.rpc.call(method, **query)
             resp.raise_for_status()
-            rpc_reply = self.rpc.codec.loads(resp.content, encoding='utf-8')
+            rpc_reply = self.rpc.codec.loads(resp.content)
             return self.rpc.response(rpc_reply)
         except requests.exceptions.HTTPError as exc:
             logger.exception(exc)
             raise
+
+    def create(self,
+               tbk,
+               datashapes,
+               schema='Symbol/Timeframe/AttributeGroup',
+               row_type="fixed"):
+        """
+        :type datashapes: DataShapes
+        """
+        tbk = '%s:%s' % (tbk, schema)
+        request = {
+            'Key': tbk,
+            'DataShapes': str(datashapes),
+            'RowType': row_type
+        }
+        requests = {'Requests': [request]}
+        return self._request('DataService.Create', **requests)
 
     def query(self, params):
         if not isiterable(params):
@@ -96,7 +143,15 @@ class Client(object):
         reply = self._request('DataService.Query', **query)
         return QueryReply(reply)
 
+    def sql(self, statement):
+        params = Params(is_sqlstatement=True, sql_statement=statement)
+        return self.query(params)
+
     def write(self, recarray, tbk, isvariablelength=False):
+        if self.codec != 'msgpack':
+            print("Write action only support for msgpack codec")
+            return
+
         data = {}
         data['types'] = [
             recarray.dtype[name].str.replace('<', '')
@@ -121,7 +176,7 @@ class Client(object):
         except requests.exceptions.ConnectionError:
             raise requests.exceptions.ConnectionError(
                 "Could not contact server")
-        reply_obj = self.rpc.codec.loads(reply.content, encoding='utf-8')
+        reply_obj = self.rpc.codec.loads(reply.content)
         resp = self.rpc.response(reply_obj)
         return resp
 
@@ -145,6 +200,12 @@ class Client(object):
                 req['limit_from_start'] = bool(param.limit_from_start)
             if param.functions is not None:
                 req['functions'] = param.functions
+            if param.columns is not None:
+                req['columns'] = param.columns
+            if param.is_sqlstatement is not None:
+                req['is_sqlstatement'] = param.is_sqlstatement
+            if param.sql_statement is not None:
+                req['sql_statement'] = param.sql_statement
             reqs.append(req)
         return {
             'requests': reqs,
@@ -177,3 +238,11 @@ class Client(object):
 
     def __repr__(self):
         return 'Client("{}")'.format(self.endpoint)
+
+
+if __name__ == '__main__':
+    param = Params('BTC', '1Min', 'OHLCV', limit=10)
+    cli = Client()
+    reply = cli.query(param)
+    print(reply)
+

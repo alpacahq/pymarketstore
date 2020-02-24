@@ -1,7 +1,9 @@
 # pymarketstore
 Python driver for MarketStore
 
-Build Status: ![build status](https://circleci.com/gh/alpacahq/pymarketstore/tree/master.png?971fa5b1079e8af0568db6caf772132c54f04dc2)
+Build Status:
+![circleci.com](https://circleci.com/gh/alpacahq/pymarketstore/tree/master.png?971fa5b1079e8af0568db6caf772132c54f04dc2)
+[![travis-ci.org](https://travis-ci.org/alpacahq/pymarketstore.svg)](https://travis-ci.org/alpacahq/pymarketstore)
 
 Pymarketstore can query and write financial timeseries data from [MarketStore](https://github.com/alpacahq/marketstore)
 
@@ -68,6 +70,35 @@ Construct a client object with endpoint.
 
 ## Query
 
+`pymkts.Client#create(tbk, datashapes, schema='Symbol/Timeframe/AttributeGroup', row_type="fixed")`
+
+You can create a new time bucket and build the datashapes using `pymkts.DataShapes`.
+
+```python
+from pymarketstore import Client, DataShape, DataShapes
+
+cli = Client()
+
+o = DataShape(name='Open', typ='float64')
+h = DataShape(name='High', typ='float64')
+l = DataShape(name='Low', typ='float64')
+c = DataShape(name='Close', typ='float64')
+v = DataShape(name='Volume', typ='int64')
+e = DataShape(name='Epoch', typ='int64')
+
+shapes = DataShapes()
+shapes.add(o)
+shapes.add(h)
+shapes.add(l)
+shapes.add(c)
+shapes.add(v)
+shapes.add(e)
+
+cli.create('TSLA/15Min/OHLCV', shapes)
+```
+
+## Query
+
 `pymkts.Client#query(symbols, timeframe, attrgroup, start=None, end=None, limit=None, limit_from_start=False)`
 
 You can build parameters using `pymkts.Params`.
@@ -81,6 +112,12 @@ You can build parameters using `pymkts.Params`.
 - limit_from_start: boolean to indicate `limit` is from the start boundary.  Defaults to False.
 
 Pass one or multiple instances of `Params` to `Client.query()`.  It will return `QueryReply` object which holds internal numpy array data returned from the server.
+
+## Sql
+
+`pymkts.Client#sql(statement)`
+
+You can query with raw SQL statements.
 
 ## Write
 
