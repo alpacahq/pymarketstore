@@ -35,6 +35,7 @@ setup(
         'urllib3',
         'pytest',
         'websocket-client',
+        'protobuf>=3.11.3',
         'grpcio'
     ],
     tests_require=[
