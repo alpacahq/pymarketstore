@@ -3,12 +3,11 @@ from __future__ import absolute_import
 import logging
 
 import grpc
-import numpy as np
-import pandas as pd
 import requests
 import six
 
-from .proto import marketstore_pb2_grpc, marketstore_pb2
+import pymarketstore.proto.marketstore_pb2 as proto
+import pymarketstore.proto.marketstore_pb2_grpc as gp
 from .results import QueryReply
 
 logger = logging.getLogger(__name__)
@@ -17,12 +16,13 @@ logger = logging.getLogger(__name__)
 def isiterable(something):
     return isinstance(something, (list, tuple, set))
 
+
 class GRPCClient(object):
 
     def __init__(self, endpoint='localhost:5995'):
         self.endpoint = endpoint
         self.channel = grpc.insecure_channel(endpoint)
-        self.stub = marketstore_pb2_grpc.MarketstoreStub(self.channel)
+        self.stub = gp.MarketstoreStub(self.channel)
 
     def query(self, params):
         if not isiterable(params):
@@ -48,10 +48,10 @@ class GRPCClient(object):
         start_index = {tbk: 0}
         lengths = {tbk: len(recarray)}
 
-        req = marketstore_pb2.MultiWriteRequest(requests=[
-            marketstore_pb2.WriteRequest(
-                data=marketstore_pb2.NumpyMultiDataset(
-                    data=marketstore_pb2.NumpyDataset(
+        req = proto.MultiWriteRequest(requests=[
+            proto.WriteRequest(
+                data=proto.NumpyMultiDataset(
+                    data=proto.NumpyDataset(
                         column_types=types,
                         column_names=names,
                         column_data=data,
@@ -74,11 +74,11 @@ class GRPCClient(object):
         return resp
 
     def build_query(self, params):
-        reqs = marketstore_pb2.MultiQueryRequest(requests=[])
+        reqs = proto.MultiQueryRequest(requests=[])
         if not isiterable(params):
             params = [params]
         for param in params:
-            req = marketstore_pb2.QueryRequest(
+            req = proto.QueryRequest(
                 destination=param.tbk,
             )
 
