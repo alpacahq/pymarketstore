@@ -40,7 +40,8 @@ setup(
         'pytest',
         'pytest-cov',
         'coverage>=4.4.1',
-        'mock>=1.0.1'
+        'mock>=1.0.1',
+        'grpcio-tools'
     ],
     setup_requires=['pytest-runner', 'flake8'],
 )

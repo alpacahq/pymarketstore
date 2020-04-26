@@ -1,4 +1,5 @@
 from .client import Client, Params  # noqa
+from .grpc_client import GRPCClient  # noqa
 
 # alias
 Param = Params  # noqa

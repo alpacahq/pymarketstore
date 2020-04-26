@@ -94,7 +94,7 @@ class Client(object):
             params = [params]
         query = self.build_query(params)
         reply = self._request('DataService.Query', **query)
-        return QueryReply(reply)
+        return QueryReply.from_response(reply)
 
     def write(self, recarray, tbk, isvariablelength=False):
         data = {}

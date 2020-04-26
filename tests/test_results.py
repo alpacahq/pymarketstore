@@ -40,7 +40,7 @@ testdata2 = literal_eval(r"""
 
 
 def test_results():
-    reply = results.QueryReply(testdata1)
+    reply = results.QueryReply.from_response(testdata1)
     assert reply.timezone == 'UTC'
     assert str(reply) == """QueryReply(QueryResult(DataSet(key=BTC/1Min/OHLCV, shape=(5,), dtype=[('Epoch', '<i8'), ('Open', '<f8'), ('High', '<f8'), ('Low', '<f8'), ('Close', '<f8'), ('Volume', '<f8')])))"""  # noqa
     assert reply.first().timezone == 'UTC'
@@ -53,5 +53,5 @@ def test_results():
     assert reply.symbols() == ['BTC']
     assert reply.timeframes() == ['1Min']
 
-    reply = results.QueryReply(testdata2)
+    reply = results.QueryReply.from_response(testdata2)
     assert str(reply.first().df().index.tzinfo) == 'America/New_York'
