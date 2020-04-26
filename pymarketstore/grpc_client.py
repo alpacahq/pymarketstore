@@ -8,7 +8,7 @@ import pandas as pd
 import requests
 import six
 
-from pymarketstore.proto import marketstore_pb2_grpc, marketstore_pb2
+from .proto import marketstore_pb2_grpc, marketstore_pb2
 from .results import QueryReply
 
 logger = logging.getLogger(__name__)
