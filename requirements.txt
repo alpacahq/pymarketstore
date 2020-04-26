@@ -8,3 +8,4 @@ pytest
 setuptools>=28.8.0
 websocket-client
 protobuf==3.11.3
+grpcio==1.28.1
