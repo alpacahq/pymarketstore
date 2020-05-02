@@ -1,4 +1,5 @@
 from .client import Client, Params  # noqa
+from .jsonrpc_client import MsgpackRpcClient  # noqa
 from .grpc_client import GRPCClient  # noqa
 
 # alias

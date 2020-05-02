@@ -4,8 +4,9 @@ all:
 install: all
 
 unittest: all
-	pytest -s -v -q ./pymarketstore/test_client.py
+	pytest -s -v .
 
 proto:
 	#pip install grpcio-tools
-	python -m grpc_tools.protoc -I./ --python_out=./pymarketstore/pb --grpc_python_out=./pymarketstore/pb ./proto/marketstore.proto
+	wget https://raw.githubusercontent.com/alpacahq/marketstore/feature/grpc/proto/marketstore.proto -O ./pymarketstore/proto/marketstore.proto
+	python -m grpc_tools.protoc -I./ --python_out=./ --grpc_python_out=./ ./pymarketstore/proto/marketstore.proto

@@ -3,10 +3,9 @@ import msgpack
 import requests
 
 
-class JsonRpcClient(object):
-
-    codec = json
-    mimetype = "application/json"
+class MsgpackRpcClient(object):
+    codec = msgpack
+    mimetype = "application/x-msgpack"
 
     def __init__(self, endpoint=None):
         self._id = 1
@@ -21,6 +20,7 @@ class JsonRpcClient(object):
                 self._endpoint,
                 data=self.codec.dumps(self.request(method, **kwargs)),
                 headers={"Content-Type": self.mimetype})
+
         return call
 
     def call(self, method, **kwargs):
@@ -46,8 +46,3 @@ class JsonRpcClient(object):
         raise Exception('{}:\n{}'.format(
             resp['error']['message'],
             str(resp['error'].get('data', ''))))
-
-
-class MsgpackRpcClient(JsonRpcClient):
-    codec = msgpack
-    mimetype = "application/x-msgpack"

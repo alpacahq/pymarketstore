@@ -64,14 +64,8 @@ class GRPCClient(object):
                 is_variable_length=isvariablelength,
             )
         ])
-        try:
-            resp = self.stub.Write(req)
 
-        except requests.exceptions.ConnectionError:
-            raise requests.exceptions.ConnectionError(
-                "Could not contact server")
-
-        return resp
+        return self.stub.Write(req)
 
     def build_query(self, params):
         reqs = proto.MultiQueryRequest(requests=[])
@@ -111,31 +105,21 @@ class GRPCClient(object):
             reqs.requests.append(req)
         return reqs
 
-    # not implemented yet
-    # def list_symbols(self):
-    #     reply = self._request('DataService.ListSymbols')
-    #     if 'Results' in reply.keys():
-    #         return reply['Results']
-    #     return []
-    #
-    # def destroy(self, tbk):
-    #     """
-    #     Delete a bucket
-    #     :param tbk: Time Bucket Key Name (i.e. "TEST/1Min/Tick" )
-    #     :return: reply object
-    #     """
-    #     destroy_req = {'requests': [{'key': tbk}]}
-    #     reply = self._request('DataService.Destroy', **destroy_req)
-    #     return reply
-    #
-    # def server_version(self):
-    #     resp = requests.head(self.endpoint)
-    #     return resp.headers.get('Marketstore-Version')
-    #
-    # def stream(self):
-    #     endpoint = re.sub('^http', 'ws',
-    #                       re.sub(r'/rpc$', '/ws', self.endpoint))
-    #     return StreamConn(endpoint)
+    def list_symbols(self):
+        resp = self.stub.ListSymbols(proto.ListSymbolsRequest())
+        return resp.results
+
+    def destroy(self, tbk):
+        """
+        Delete a bucket
+        :param tbk: Time Bucket Key Name (i.e. "TEST/1Min/Tick" )
+        """
+        req = proto.MultiKeyRequest(requests=[proto.KeyRequest(key=tbk)])
+        return self.stub.Destroy(req)
+
+    def server_version(self):
+        resp = self.stub.ServerVersion(proto.ServerVersionRequest())
+        return resp.version
 
     def __repr__(self):
         return 'GRPCClient("{}")'.format(self.endpoint)

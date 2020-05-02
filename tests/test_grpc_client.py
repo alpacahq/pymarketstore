@@ -17,7 +17,7 @@ def test_grpc_client_init():
     assert isinstance(c.stub, marketstore_pb2_grpc.MarketstoreStub)
 
 
-@patch('pymarketstore.grpc_client.marketstore_pb2_grpc.MarketstoreStub')
+@patch('pymarketstore.proto.marketstore_pb2_grpc.MarketstoreStub')
 def test_query(stub):
     # --- given ---
     c = pymkts.GRPCClient()
@@ -30,7 +30,7 @@ def test_query(stub):
     assert c.stub.Query.called == 1
 
 
-@patch('pymarketstore.grpc_client.marketstore_pb2_grpc.MarketstoreStub')
+@patch('pymarketstore.proto.marketstore_pb2_grpc.MarketstoreStub')
 def test_write(stub):
     # --- given ---
     c = pymkts.GRPCClient()
@@ -56,17 +56,38 @@ def test_build_query():
     assert query == MultiQueryRequest(
         requests=[QueryRequest(destination="TSLA/1Min/OHLCV", epoch_start=1500000000, epoch_end=4294967296)])
 
-# Not implemented yet
-# @patch('pymarketstore.client.MsgpackRpcClient')
-# def test_list_symbols(MsgpackRpcClient):
-#     c = pymkts.GRPCClient()
-#     c.list_symbols()
-#     assert MsgpackRpcClient().call.called == 1
-#
-#
-# @patch('pymarketstore.client.MsgpackRpcClient')
-# def test_destroy(MsgpackRpcClient):
-#     c = pymkts.GRPCClient()
-#     tbk = 'TEST/1Min/TICK'
-#     c.destroy(tbk)
-#     assert MsgpackRpcClient().call.called == 1
+
+@patch('pymarketstore.proto.marketstore_pb2_grpc.MarketstoreStub')
+def test_list_symbols(stub):
+    # --- given ---
+    c = pymkts.GRPCClient()
+
+    # --- when ---
+    c.list_symbols()
+
+    # --- then ---
+    assert c.stub.ListSymbols.called == 1
+
+
+@patch('pymarketstore.proto.marketstore_pb2_grpc.MarketstoreStub')
+def test_destroy(stub):
+    # --- given ---
+    c = pymkts.GRPCClient()
+    tbk = 'TEST/1Min/TICK'
+
+    # --- when ---
+    c.destroy(tbk)
+
+    # --- then ---
+    assert c.stub.Destroy.called == 1
+
+@patch('pymarketstore.proto.marketstore_pb2_grpc.MarketstoreStub')
+def test_server_version(stub):
+    # --- given ---
+    c = pymkts.GRPCClient()
+
+    # --- when ---
+    c.server_version()
+
+    # --- then ---
+    assert c.stub.ServerVersion.called == 1
