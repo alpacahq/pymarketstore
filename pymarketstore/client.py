@@ -20,7 +20,7 @@ data_type_conv = {
     '<i8': 'q',
 }
 
-http_regex = re.compile(r'^(?:http)s?://(.*):\d+/rpc')  # http:// or https://
+http_regex = re.compile(r'^https?://(.+):\d+/rpc')  # http:// or https://
 
 
 def isiterable(something):
