@@ -95,7 +95,7 @@ class Client:
         return self.client.build_query(params)
 
     def write(self, recarray, tbk, isvariablelength=False):
-        return self.client.write(recarray, tbk, isvariablelength=False)
+        return self.client.write(recarray, tbk, isvariablelength=isvariablelength)
 
     def list_symbols(self):
         return self.client.list_symbols()
