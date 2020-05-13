@@ -1,9 +1,11 @@
 from __future__ import absolute_import
+
+import logging
+import re
+
 import numpy as np
 import pandas as pd
-import re
 import requests
-import logging
 import six
 
 from .results import QueryReply
@@ -24,6 +26,11 @@ http_regex = re.compile(r'^https?://(.+):\d+/rpc')  # http:// or https://
 
 
 def isiterable(something):
+    """
+    check if something is a list, tuple or set
+    :param something: any object
+    :return: bool. true if something is a list, tuple or set
+    """
     return isinstance(something, (list, tuple, set))
 
 
@@ -89,12 +96,25 @@ class Client:
         self.client = JsonRpcClient(self.endpoint)
 
     def query(self, params):
+        """
+        execute QUERY to MarketStore server
+        :param params: Params object used to query
+        :return: QueryReply object
+        """
         return self.client.query(params)
 
-    def build_query(self, params):
+    def _build_query(self, params):
         return self.client.build_query(params)
 
     def write(self, recarray, tbk, isvariablelength=False):
+        """
+        execute WRITE to MarketStore server
+        :param recarray: numpy.array object to write
+        :param tbk: Time Bucket Key string.
+        ('{symbol name}/{time frame}/{attribute group name}' ex. 'TSLA/1Min/OHLCV' , 'AAPL/1Min/TICK' )
+        :param isvariablelength: should be set true if the record content is variable-length array
+        :return:
+        """
         return self.client.write(recarray, tbk, isvariablelength=isvariablelength)
 
     def list_symbols(self):

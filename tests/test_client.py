@@ -54,7 +54,7 @@ def test_build_query():
     c = pymkts.Client("127.0.0.1:5994")
     p = pymkts.Params('TSLA', '1Min', 'OHLCV', 1500000000, 4294967296)
     p2 = pymkts.Params('FORD', '5Min', 'OHLCV', 1000000000, 4294967296)
-    query_dict = c.build_query([p, p2])
+    query_dict = c._build_query([p, p2])
     test_query_dict = {}
     test_lst = []
     param_dict1 = {
@@ -72,7 +72,7 @@ def test_build_query():
     test_query_dict['requests'] = test_lst
     assert query_dict == test_query_dict
 
-    query_dict = c.build_query(p)
+    query_dict = c._build_query(p)
     assert query_dict == {'requests': [param_dict1]}
 
 
