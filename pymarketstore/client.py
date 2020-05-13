@@ -182,9 +182,19 @@ class Client(object):
             if param.key_category is not None:
                 req['key_category'] = param.key_category
             if param.start is not None:
-                req['epoch_start'] = int(param.start.value / (10 ** 9))
+                req['epoch_start'], start_nanosec = divmod(param.start.value, 10**9)
+
+                # support nanosec
+                if start_nanosec != 0:
+                    req['epoch_start_nanos'] = start_nanosec
+
             if param.end is not None:
-                req['epoch_end'] = int(param.end.value / (10 ** 9))
+                req['epoch_end'], end_nanosec = divmod(param.end.value, 10 ** 9)
+
+                # support nanosec
+                if end_nanosec != 0:
+                    req['epoch_end_nanos'] = end_nanosec
+
             if param.limit is not None:
                 req['limit_record_count'] = int(param.limit)
             if param.limit_from_start is not None:
