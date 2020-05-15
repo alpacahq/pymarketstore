@@ -68,13 +68,11 @@ class JsonRpcClient(object):
         writer = {}
         writer['requests'] = [write_request]
         try:
-            reply = self.rpc.call("DataService.Write", **writer)
+            return self.rpc.call("DataService.Write", **writer)
         except requests.exceptions.ConnectionError:
             raise requests.exceptions.ConnectionError(
                 "Could not contact server")
-        reply_obj = self.rpc.codec.loads(reply.content, encoding='utf-8')
-        resp = self.rpc.response(reply_obj)
-        return resp
+
 
     def build_query(self, params):
         reqs = []
