@@ -46,7 +46,8 @@ class Params(object):
 
     def __init__(self, symbols, timeframe, attrgroup,
                  start=None, end=None,
-                 limit=None, limit_from_start=None):
+                 limit=None, limit_from_start=None,
+                 columns=None):
         if not isiterable(symbols):
             symbols = [symbols]
         self.tbk = ','.join(symbols) + "/" + timeframe + "/" + attrgroup
@@ -55,6 +56,7 @@ class Params(object):
         self.end = get_timestamp(end)
         self.limit = limit
         self.limit_from_start = limit_from_start
+        self.columns = columns
         self.functions = None
 
     def set(self, key, val):
@@ -70,8 +72,9 @@ class Params(object):
         content = ('tbk={}, start={}, end={}, '.format(
             self.tbk, self.start, self.end,
         ) +
-                   'limit={}, '.format(self.limit) +
-                   'limit_from_start={}'.format(self.limit_from_start))
+            'limit={}, '.format(self.limit) +
+            'limit_from_start={}'.format(self.limit_from_start) +
+            'columns={}'.format(self.columns))
         return 'Params({})'.format(content)
 
 
