@@ -32,10 +32,7 @@ class JsonRpcClient(object):
 
     def _request(self, method, **query):
         try:
-            resp = self.rpc.call(method, **query)
-            resp.raise_for_status()
-            rpc_reply = self.rpc.codec.loads(resp.content, encoding='utf-8')
-            return self.rpc.response(rpc_reply)
+            return self.rpc.call(method, **query)
         except requests.exceptions.HTTPError as exc:
             logger.exception(exc)
             raise
@@ -67,6 +64,7 @@ class JsonRpcClient(object):
         write_request['is_variable_length'] = isvariablelength
         writer = {}
         writer['requests'] = [write_request]
+
         try:
             return self.rpc.call("DataService.Write", **writer)
         except requests.exceptions.ConnectionError:
