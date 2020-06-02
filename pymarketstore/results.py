@@ -3,28 +3,40 @@ import pandas as pd
 import six
 
 
-def decode(packed):
-
+def decode(column_names, column_types, column_data, data_length):
     dt = np.dtype([
         (colname if isinstance(colname, str) else colname.encode("utf-8"),
          coltype if isinstance(colname, str) else coltype.encode("utf-8"))
-        for colname, coltype in zip(packed['names'], packed['types'])
+        for colname, coltype in zip(column_names, column_types)
     ])
 
-    array = np.empty((packed['length'],), dtype=dt)
+    array = np.empty((data_length,), dtype=dt)
     for idx, name in enumerate(dt.names):
-        array[name] = np.frombuffer(packed['data'][idx], dtype=dt[idx])
+        array[name] = np.frombuffer(column_data[idx], dtype=dt[idx])
     return array
-
 
 def decode_responses(responses):
     results = []
     for response in responses:
         packed = response['result']
         array_dict = {}
-        array = decode(packed)
+        #array = decode(packed)
+        array = decode(packed['names'], packed['types'], packed['data'], packed['length'])
         for tbk, start_idx in six.iteritems(packed['startindex']):
             length = packed['lengths'][tbk]
+            key = str(tbk.split(':')[0])
+            array_dict[key] = array[start_idx:start_idx + length]
+        results.append(array_dict)
+    return results
+
+def decode_grpc_responses(responses):
+    results = []
+    for response in responses:
+        packed = response.result
+        array_dict = {}
+        array = decode(packed.data.column_names, packed.data.column_types, packed.data.column_data, packed.data.length)
+        for tbk, start_idx in six.iteritems(packed.start_index):
+            length = packed.lengths[tbk]
             key = str(tbk.split(':')[0])
             array_dict[key] = array[start_idx:start_idx + length]
         results.append(array_dict)
@@ -33,14 +45,10 @@ def decode_responses(responses):
 
 class DataSet(object):
 
-    def __init__(self, array, key, reply):
+    def __init__(self, array, key, timezone):
         self.array = array
         self.key = key
-        self.reply = reply
-
-    @property
-    def timezone(self):
-        return self.reply['timezone']
+        self.timezone = timezone
 
     @property
     def symbol(self):
@@ -73,16 +81,12 @@ class DataSet(object):
 
 class QueryResult(object):
 
-    def __init__(self, result, reply):
+    def __init__(self, result, timezone):
         self.result = {
-            key: DataSet(value, key, reply)
+            key: DataSet(value, key, timezone)
             for key, value in six.iteritems(result)
         }
-        self.reply = reply
-
-    @property
-    def timezone(self):
-        return self.reply['timezone']
+        self.timezone = timezone
 
     def keys(self):
         return list(self.result.keys())
@@ -102,14 +106,19 @@ class QueryResult(object):
 
 class QueryReply(object):
 
-    def __init__(self, reply):
-        results = decode_responses(reply['responses'])
-        self.results = [QueryResult(result, reply) for result in results]
-        self.reply = reply
+    def __init__(self, results, timezone):
+        self.results = results
+        self.timezone = timezone
 
-    @property
-    def timezone(self):
-        return self.reply['timezone']
+    @classmethod
+    def from_response(cls, resp):
+        results = decode_responses(resp['responses'])
+        return cls([QueryResult(result, resp['timezone']) for result in results], resp['timezone'])
+
+    @classmethod
+    def from_grpc_response(cls, resp):
+        results = decode_grpc_responses(resp.responses)
+        return cls([QueryResult(result, resp.timezone) for result in results], resp.timezone)
 
     def first(self):
         return self.results[0].first()

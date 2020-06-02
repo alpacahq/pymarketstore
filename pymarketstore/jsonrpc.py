@@ -3,9 +3,9 @@ import msgpack
 import requests
 
 
-class JsonRpcClient(object):
-    codec = json
-    mimetype = "application/json"
+class MsgpackRpcClient(object):
+    codec = msgpack
+    mimetype = "application/x-msgpack"
 
     def __init__(self, endpoint):
         if not endpoint:
@@ -14,6 +14,17 @@ class JsonRpcClient(object):
         self._id = 1
         self._endpoint = endpoint
         self._session = requests.Session()
+
+    def __getattr__(self, method):
+        assert self._endpoint is not None
+
+        def call(**kwargs):
+            return self._session.post(
+                self._endpoint,
+                data=self.codec.dumps(self.request(method, **kwargs)),
+                headers={"Content-Type": self.mimetype})
+
+        return call
 
     def call(self, rpc_method, **query):
         reply = self._rpc_request(rpc_method, **query)
@@ -50,8 +61,3 @@ class JsonRpcClient(object):
             return reply['result']
 
         raise Exception('invalid JSON-RPC protocol: missing error or result key')
-
-
-class MsgpackRpcClient(JsonRpcClient):
-    codec = msgpack
-    mimetype = "application/x-msgpack"

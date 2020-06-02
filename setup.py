@@ -2,7 +2,7 @@
 
 import ast
 import re
-from setuptools import setup
+from setuptools import setup, find_packages
 
 _version_re = re.compile(r'__version__\s+=\s+(.*)')
 
@@ -25,7 +25,7 @@ setup(
     author_email='oss@alpaca.markets',
     url='https://github.com/alpacahq/pymarketstore',
     keywords='database,pandas,financial,timeseries',
-    packages=['pymarketstore', ],
+    packages=find_packages(exclude=('tests', 'docs')),
     install_requires=[
         'msgpack-python',
         'numpy',
@@ -35,12 +35,15 @@ setup(
         'urllib3',
         'pytest',
         'websocket-client',
+        'protobuf>=3.11.3',
+        'grpcio'
     ],
     tests_require=[
         'pytest',
         'pytest-cov',
         'coverage>=4.4.1',
-        'mock>=1.0.1'
+        'mock>=1.0.1',
+        'grpcio-tools'
     ],
     setup_requires=['pytest-runner', 'flake8'],
 )
