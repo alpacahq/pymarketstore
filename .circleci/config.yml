@@ -2,10 +2,10 @@ version: 2
 jobs:
   build-python36:
     docker:
-      - image: python:3.6.1
+      - image: python:3.6.10
     working_directory: ~/repo
     steps:
-      - run: echo "hello python 3.6.1"
+      - run: echo "hello python 3.6.10"
       - checkout
 
       # Download and cache dependencies
