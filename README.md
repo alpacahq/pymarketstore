@@ -5,7 +5,7 @@ Build Status: ![build status](https://circleci.com/gh/alpacahq/pymarketstore/tre
 
 Pymarketstore can query and write financial timeseries data from [MarketStore](https://github.com/alpacahq/marketstore)
 
-Tested with 2.7, 3.3+
+Tested with 3.3+
 
 ## How to install
 
