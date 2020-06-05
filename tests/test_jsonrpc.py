@@ -3,14 +3,9 @@ import six
 
 from pymarketstore import jsonrpc
 
-if six.PY2:
-    from mock import patch
-    import imp
-    imp.reload(jsonrpc)
-else:
-    from unittest.mock import patch
-    import importlib
-    importlib.reload(jsonrpc)
+from unittest.mock import patch
+import importlib
+importlib.reload(jsonrpc)
 
 
 @patch.object(jsonrpc, 'requests')

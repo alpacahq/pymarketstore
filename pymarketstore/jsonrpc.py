@@ -1,13 +1,14 @@
 import json
 import msgpack
 import requests
+from typing import Dict, Union
 
 
 class MsgpackRpcClient(object):
     codec = msgpack
     mimetype = "application/x-msgpack"
 
-    def __init__(self, endpoint):
+    def __init__(self, endpoint: str):
         if not endpoint:
             raise ValueError('The `endpoint` parameter is required')
 
@@ -15,7 +16,7 @@ class MsgpackRpcClient(object):
         self._endpoint = endpoint
         self._session = requests.Session()
 
-    def __getattr__(self, method):
+    def __getattr__(self, method: str):
         assert self._endpoint is not None
 
         def call(**kwargs):
@@ -26,11 +27,11 @@ class MsgpackRpcClient(object):
 
         return call
 
-    def call(self, rpc_method, **query):
+    def call(self, rpc_method: str, **query):
         reply = self._rpc_request(rpc_method, **query)
         return self._rpc_response(reply)
 
-    def _rpc_request(self, method, **query):
+    def _rpc_request(self, method: str, **query) -> Union[Dict, requests.Response]:
         http_resp = self._session.post(
             self._endpoint,
             data=self.codec.dumps(dict(
@@ -51,7 +52,7 @@ class MsgpackRpcClient(object):
         return self.codec.loads(http_resp.content, encoding='utf-8')
 
     @staticmethod
-    def _rpc_response(reply):
+    def _rpc_response(reply: Dict) -> str:
         error = reply.get('error', None)
         if error:
             raise Exception('{}: {}'.format(error['message'],
