@@ -1,6 +1,6 @@
 from typing import Union, List, Any
 import pandas as pd
-
+import numpy as np
 
 def get_timestamp(value: Union[int, str]) -> pd.Timestamp:
     if value is None:

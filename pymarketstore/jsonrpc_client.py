@@ -75,7 +75,7 @@ class JsonRpcClient(object):
             raise requests.exceptions.ConnectionError(
                 "Could not contact server")
 
-    def build_query(self, params: Params) -> Dict:
+    def build_query(self, params: Union[Params, List[Params]]) -> Dict:
         reqs = []
         if not isiterable(params):
             params = [params]

@@ -2,7 +2,7 @@ from __future__ import absolute_import
 
 import logging
 import re
-from typing import List, Dict
+from typing import List, Dict, Union
 
 import numpy as np
 
@@ -51,7 +51,7 @@ class Client:
         """
         return self.client.query(params)
 
-    def _build_query(self, params: Params) -> Dict:
+    def _build_query(self, params: Union[Params, List[Params]]) -> Dict:
         return self.client.build_query(params)
 
     def write(self, recarray: np.array, tbk: str, isvariablelength: bool = False) -> str:

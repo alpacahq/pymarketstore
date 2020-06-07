@@ -6,11 +6,11 @@ import grpc
 
 import pymarketstore.proto.marketstore_pb2 as proto
 import pymarketstore.proto.marketstore_pb2_grpc as gp
-import pymarketstore.params as Params
+from .params import Params
 from .results import QueryReply
 
 import numpy as np
-from typing import List
+from typing import List, Union
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +26,7 @@ class GRPCClient(object):
         self.channel = grpc.insecure_channel(endpoint)
         self.stub = gp.MarketstoreStub(self.channel)
 
-    def query(self, params: Params) -> QueryReply:
+    def query(self, params: Union[Params, List[Params]]) -> QueryReply:
         if not isiterable(params):
             params = [params]
         reqs = self.build_query(params)
@@ -68,7 +68,7 @@ class GRPCClient(object):
 
         return self.stub.Write(req)
 
-    def build_query(self, params: Params) -> proto.MultiQueryRequest:
+    def build_query(self, params: Union[Params, List[Params]]) -> proto.MultiQueryRequest:
         reqs = proto.MultiQueryRequest(requests=[])
         if not isiterable(params):
             params = [params]
