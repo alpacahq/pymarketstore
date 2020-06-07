@@ -1,22 +1,27 @@
 from __future__ import absolute_import
+
+import logging
+import re
+from typing import Any
+from typing import Union, Dict, List
+
 import numpy as np
 import pandas as pd
-import re
 import requests
-import logging
-import six
+
 from .jsonrpc import MsgpackRpcClient
+from .params import Params
 from .results import QueryReply
 from .stream import StreamConn
 
 logger = logging.getLogger(__name__)
 
 
-def isiterable(something):
+def isiterable(something: Any) -> bool:
     return isinstance(something, (list, tuple, set))
 
 
-def get_timestamp(value):
+def get_timestamp(value: Union[int, str]) -> pd.Timestamp:
     if value is None:
         return None
     if isinstance(value, (int, np.integer)):
@@ -26,25 +31,25 @@ def get_timestamp(value):
 
 class JsonRpcClient(object):
 
-    def __init__(self, endpoint='http://localhost:5993/rpc', ):
+    def __init__(self, endpoint: str = 'http://localhost:5993/rpc', ):
         self.endpoint = endpoint
         self.rpc = MsgpackRpcClient(self.endpoint)
 
-    def _request(self, method, **query):
+    def _request(self, method: str, **query) -> Dict:
         try:
             return self.rpc.call(method, **query)
         except requests.exceptions.HTTPError as exc:
             logger.exception(exc)
             raise
 
-    def query(self, params):
+    def query(self, params: Params) -> QueryReply:
         if not isiterable(params):
             params = [params]
         query = self.build_query(params)
         reply = self._request('DataService.Query', **query)
         return QueryReply.from_response(reply)
 
-    def write(self, recarray, tbk, isvariablelength=False):
+    def write(self, recarray: np.array, tbk: str, isvariablelength: bool = False) -> str:
         data = {}
         data['types'] = [
             recarray.dtype[name].str.replace('<', '')
@@ -52,8 +57,7 @@ class JsonRpcClient(object):
         ]
         data['names'] = recarray.dtype.names
         data['data'] = [
-            bytes(buffer(recarray[name])) if six.PY2
-            else bytes(memoryview(recarray[name]))
+            bytes(memoryview(recarray[name]))
             for name in recarray.dtype.names
         ]
         data['length'] = len(recarray)
@@ -71,8 +75,7 @@ class JsonRpcClient(object):
             raise requests.exceptions.ConnectionError(
                 "Could not contact server")
 
-
-    def build_query(self, params):
+    def build_query(self, params: Union[Params, List[Params]]) -> Dict:
         reqs = []
         if not isiterable(params):
             params = [params]
@@ -83,7 +86,7 @@ class JsonRpcClient(object):
             if param.key_category is not None:
                 req['key_category'] = param.key_category
             if param.start is not None:
-                req['epoch_start'], start_nanosec = divmod(param.start.value, 10**9)
+                req['epoch_start'], start_nanosec = divmod(param.start.value, 10 ** 9)
 
                 # support nanosec
                 if start_nanosec != 0:
@@ -107,13 +110,13 @@ class JsonRpcClient(object):
             'requests': reqs,
         }
 
-    def list_symbols(self):
+    def list_symbols(self) -> List[str]:
         reply = self._request('DataService.ListSymbols')
         if 'Results' in reply.keys():
             return reply['Results']
         return []
 
-    def destroy(self, tbk):
+    def destroy(self, tbk: str) -> Dict:
         """
         Delete a bucket
         :param tbk: Time Bucket Key Name (i.e. "TEST/1Min/Tick" )
@@ -123,7 +126,7 @@ class JsonRpcClient(object):
         reply = self._request('DataService.Destroy', **destroy_req)
         return reply
 
-    def server_version(self):
+    def server_version(self) -> str:
         resp = requests.head(self.endpoint)
         return resp.headers.get('Marketstore-Version')
 

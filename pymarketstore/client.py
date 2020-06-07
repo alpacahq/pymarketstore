@@ -2,16 +2,14 @@ from __future__ import absolute_import
 
 import logging
 import re
+from typing import List, Dict, Union
 
 import numpy as np
-import pandas as pd
-import requests
-import six
 
-from .results import QueryReply
 from .grpc_client import GRPCClient
 from .jsonrpc_client import JsonRpcClient
-from .stream import StreamConn
+from .params import Params
+from .results import QueryReply
 
 logger = logging.getLogger(__name__)
 
@@ -25,61 +23,8 @@ data_type_conv = {
 http_regex = re.compile(r'^https?://(.+):\d+/rpc')  # http:// or https://
 
 
-def isiterable(something):
-    """
-    check if something is a list, tuple or set
-    :param something: any object
-    :return: bool. true if something is a list, tuple or set
-    """
-    return isinstance(something, (list, tuple, set))
-
-
-def get_timestamp(value):
-    if value is None:
-        return None
-    if isinstance(value, (int, np.integer)):
-        return pd.Timestamp(value, unit='s')
-    return pd.Timestamp(value)
-
-
-class Params(object):
-
-    def __init__(self, symbols, timeframe, attrgroup,
-                 start=None, end=None,
-                 limit=None, limit_from_start=None,
-                 columns=None):
-        if not isiterable(symbols):
-            symbols = [symbols]
-        self.tbk = ','.join(symbols) + "/" + timeframe + "/" + attrgroup
-        self.key_category = None  # server default
-        self.start = get_timestamp(start)
-        self.end = get_timestamp(end)
-        self.limit = limit
-        self.limit_from_start = limit_from_start
-        self.columns = columns
-        self.functions = None
-
-    def set(self, key, val):
-        if not hasattr(self, key):
-            raise AttributeError()
-        if key in ('start', 'end'):
-            setattr(self, key, get_timestamp(val))
-        else:
-            setattr(self, key, val)
-        return self
-
-    def __repr__(self):
-        content = ('tbk={}, start={}, end={}, '.format(
-            self.tbk, self.start, self.end,
-        ) +
-            'limit={}, '.format(self.limit) +
-            'limit_from_start={}'.format(self.limit_from_start) +
-            'columns={}'.format(self.columns))
-        return 'Params({})'.format(content)
-
-
 class Client:
-    def __init__(self, endpoint='http://localhost:5993/rpc', grpc=False):
+    def __init__(self, endpoint: str = 'http://localhost:5993/rpc', grpc: bool = False):
         if grpc:
             match = re.findall(http_regex, endpoint)
 
@@ -98,7 +43,7 @@ class Client:
         self.endpoint = endpoint
         self.client = JsonRpcClient(self.endpoint)
 
-    def query(self, params):
+    def query(self, params: Params) -> QueryReply:
         """
         execute QUERY to MarketStore server
         :param params: Params object used to query
@@ -106,10 +51,10 @@ class Client:
         """
         return self.client.query(params)
 
-    def _build_query(self, params):
+    def _build_query(self, params: Union[Params, List[Params]]) -> Dict:
         return self.client.build_query(params)
 
-    def write(self, recarray, tbk, isvariablelength=False):
+    def write(self, recarray: np.array, tbk: str, isvariablelength: bool = False) -> str:
         """
         execute WRITE to MarketStore server
         :param recarray: numpy.array object to write
@@ -120,13 +65,13 @@ class Client:
         """
         return self.client.write(recarray, tbk, isvariablelength=isvariablelength)
 
-    def list_symbols(self):
+    def list_symbols(self) -> List[str]:
         return self.client.list_symbols()
 
-    def destroy(self, tbk):
+    def destroy(self, tbk: str) -> Dict:
         return self.client.destroy(tbk)
 
-    def server_version(self):
+    def server_version(self) -> str:
         return self.client.server_version()
 
     def __repr__(self):

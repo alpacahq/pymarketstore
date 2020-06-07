@@ -3,12 +3,14 @@ from __future__ import absolute_import
 import logging
 
 import grpc
-import requests
-import six
 
 import pymarketstore.proto.marketstore_pb2 as proto
 import pymarketstore.proto.marketstore_pb2_grpc as gp
+from .params import Params
 from .results import QueryReply
+
+import numpy as np
+from typing import List, Union
 
 logger = logging.getLogger(__name__)
 
@@ -19,12 +21,12 @@ def isiterable(something):
 
 class GRPCClient(object):
 
-    def __init__(self, endpoint='localhost:5995'):
+    def __init__(self, endpoint: str = 'localhost:5995'):
         self.endpoint = endpoint
         self.channel = grpc.insecure_channel(endpoint)
         self.stub = gp.MarketstoreStub(self.channel)
 
-    def query(self, params):
+    def query(self, params: Union[Params, List[Params]]) -> QueryReply:
         if not isiterable(params):
             params = [params]
         reqs = self.build_query(params)
@@ -33,15 +35,14 @@ class GRPCClient(object):
 
         return QueryReply.from_grpc_response(reply)
 
-    def write(self, recarray, tbk, isvariablelength=False):
+    def write(self, recarray: np.array, tbk: str, isvariablelength: bool = False) -> proto.MultiServerResponse:
         types = [
             recarray.dtype[name].str.replace('<', '')
             for name in recarray.dtype.names
         ]
         names = recarray.dtype.names
         data = [
-            bytes(buffer(recarray[name])) if six.PY2
-            else bytes(memoryview(recarray[name]))
+            bytes(memoryview(recarray[name]))
             for name in recarray.dtype.names
         ]
         length = len(recarray)
@@ -67,7 +68,7 @@ class GRPCClient(object):
 
         return self.stub.Write(req)
 
-    def build_query(self, params):
+    def build_query(self, params: Union[Params, List[Params]]) -> proto.MultiQueryRequest:
         reqs = proto.MultiQueryRequest(requests=[])
         if not isiterable(params):
             params = [params]
@@ -105,11 +106,11 @@ class GRPCClient(object):
             reqs.requests.append(req)
         return reqs
 
-    def list_symbols(self):
+    def list_symbols(self) -> List[str]:
         resp = self.stub.ListSymbols(proto.ListSymbolsRequest())
         return resp.results
 
-    def destroy(self, tbk):
+    def destroy(self, tbk: str) -> proto.MultiServerResponse:
         """
         Delete a bucket
         :param tbk: Time Bucket Key Name (i.e. "TEST/1Min/Tick" )
@@ -117,7 +118,7 @@ class GRPCClient(object):
         req = proto.MultiKeyRequest(requests=[proto.KeyRequest(key=tbk)])
         return self.stub.Destroy(req)
 
-    def server_version(self):
+    def server_version(self) -> str:
         resp = self.stub.ServerVersion(proto.ServerVersionRequest())
         return resp.version
 
