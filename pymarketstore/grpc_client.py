@@ -83,17 +83,17 @@ class GRPCClient(object):
                 req.epoch_start = int(param.start.value / (10 ** 9))
 
                 # support nanosec
-                # start_nanosec = int(param.start.value % (10 ** 9))
-                # if start_nanosec != 0:
-                #    req.epoch_start_nanos = start_nanosec
+                start_nanosec = int(param.start.value % (10 ** 9))
+                if start_nanosec != 0:
+                   req.epoch_start_nanos = start_nanosec
 
             if param.end is not None:
                 req.epoch_end = int(param.end.value / (10 ** 9))
 
                 # support nanosec
-                # end_nanosec = int(param.end.value % (10 ** 9))
-                # if end_nanosec != 0:
-                #    req.epoch_end_nanos = end_nanosec
+                end_nanosec = int(param.end.value % (10 ** 9))
+                if end_nanosec != 0:
+                   req.epoch_end_nanos = end_nanosec
 
             if param.end is not None:
                 req.epoch_end = int(param.end.value / (10 ** 9))

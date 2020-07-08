@@ -8,5 +8,5 @@ unittest: all
 
 proto:
 	#pip install grpcio-tools
-	wget https://raw.githubusercontent.com/alpacahq/marketstore/feature/grpc/proto/marketstore.proto -O ./pymarketstore/proto/marketstore.proto
+	wget https://raw.githubusercontent.com/alpacahq/marketstore/master/proto/marketstore.proto -O ./pymarketstore/proto/marketstore.proto
 	python -m grpc_tools.protoc -I./ --python_out=./ --grpc_python_out=./ ./pymarketstore/proto/marketstore.proto
