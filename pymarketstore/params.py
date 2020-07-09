@@ -21,7 +21,7 @@ def isiterable(something: Any) -> bool:
 
 class Params(object):
 
-    def __init__(self, symbols: str, timeframe: str, attrgroup: str,
+    def __init__(self, symbols: Union[List[str], str], timeframe: str, attrgroup: str,
                  start: Union[int, str] = None, end: Union[int, str] = None,
                  limit: int = None, limit_from_start: bool = None,
                  columns: List[str] = None):

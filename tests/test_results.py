@@ -1,8 +1,5 @@
 from ast import literal_eval
 from pymarketstore import results
-import imp
-imp.reload(results)
-
 
 testdata1 = literal_eval(r"""
 {'responses': [{'result': {'data': [b'\xf4\xe8^Z\x00\x00\x00\x000\xe9^Z\x00\x00\x00\x00l\xe9^Z\x00\x00\x00\x00\xa8\xe9^Z\x00\x00\x00\x00\xe4\xe9^Z\x00\x00\x00\x00',
@@ -42,7 +39,8 @@ testdata2 = literal_eval(r"""
 def test_results():
     reply = results.QueryReply.from_response(testdata1)
     assert reply.timezone == 'UTC'
-    assert str(reply) == """QueryReply(QueryResult(DataSet(key=BTC/1Min/OHLCV, shape=(5,), dtype=[('Epoch', '<i8'), ('Open', '<f8'), ('High', '<f8'), ('Low', '<f8'), ('Close', '<f8'), ('Volume', '<f8')])))"""  # noqa
+    assert str(
+        reply) == """QueryReply(QueryResult(DataSet(key=BTC/1Min/OHLCV, shape=(5,), dtype=[('Epoch', '<i8'), ('Open', '<f8'), ('High', '<f8'), ('Low', '<f8'), ('Close', '<f8'), ('Volume', '<f8')])))"""  # noqa
     assert reply.first().timezone == 'UTC'
     assert reply.first().symbol == 'BTC'
     assert reply.first().timeframe == '1Min'
