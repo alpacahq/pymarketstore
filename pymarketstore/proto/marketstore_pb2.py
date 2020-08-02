@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   package='proto',
   syntax='proto3',
   serialized_options=None,
-  serialized_pb=b'\n%pymarketstore/proto/marketstore.proto\x12\x05proto\"8\n\tDataShape\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x1d\n\x04type\x18\x02 \x01(\x0e\x32\x0f.proto.DataType\"\x90\x02\n\x11NumpyMultiDataset\x12!\n\x04\x64\x61ta\x18\x01 \x01(\x0b\x32\x13.proto.NumpyDataset\x12=\n\x0bstart_index\x18\x02 \x03(\x0b\x32(.proto.NumpyMultiDataset.StartIndexEntry\x12\x36\n\x07lengths\x18\x03 \x03(\x0b\x32%.proto.NumpyMultiDataset.LengthsEntry\x1a\x31\n\x0fStartIndexEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\x05:\x02\x38\x01\x1a.\n\x0cLengthsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\x05:\x02\x38\x01\"\x86\x01\n\x0cNumpyDataset\x12\x14\n\x0c\x63olumn_types\x18\x01 \x03(\t\x12\x14\n\x0c\x63olumn_names\x18\x02 \x03(\t\x12\x13\n\x0b\x63olumn_data\x18\x03 \x03(\x0c\x12\x0e\n\x06length\x18\x04 \x01(\x05\x12%\n\x0b\x64\x61ta_shapes\x18\x05 \x03(\x0b\x32\x10.proto.DataShape\":\n\x11MultiQueryRequest\x12%\n\x08requests\x18\x01 \x03(\x0b\x32\x13.proto.QueryRequest\"\xa0\x02\n\x0cQueryRequest\x12\x18\n\x10is_sql_statement\x18\x01 \x01(\x08\x12\x15\n\rsql_statement\x18\x02 \x01(\t\x12\x13\n\x0b\x64\x65stination\x18\x03 \x01(\t\x12\x14\n\x0ckey_category\x18\x04 \x01(\t\x12\x13\n\x0b\x65poch_start\x18\x05 \x01(\x03\x12\x19\n\x11\x65poch_start_nanos\x18\x06 \x01(\x03\x12\x11\n\tepoch_end\x18\x07 \x01(\x03\x12\x17\n\x0f\x65poch_end_nanos\x18\x08 \x01(\x03\x12\x1a\n\x12limit_record_count\x18\t \x01(\x05\x12\x18\n\x10limit_from_start\x18\n \x01(\x08\x12\x0f\n\x07\x63olumns\x18\x0b \x03(\t\x12\x11\n\tfunctions\x18\x0c \x03(\t\"`\n\x12MultiQueryResponse\x12\'\n\tresponses\x18\x01 \x03(\x0b\x32\x14.proto.QueryResponse\x12\x0f\n\x07version\x18\x02 \x01(\t\x12\x10\n\x08timezone\x18\x03 \x01(\t\"9\n\rQueryResponse\x12(\n\x06result\x18\x01 \x01(\x0b\x32\x18.proto.NumpyMultiDataset\":\n\x11MultiWriteRequest\x12%\n\x08requests\x18\x01 \x03(\x0b\x32\x13.proto.WriteRequest\"R\n\x0cWriteRequest\x12&\n\x04\x64\x61ta\x18\x01 \x01(\x0b\x32\x18.proto.NumpyMultiDataset\x12\x1a\n\x12is_variable_length\x18\x02 \x01(\x08\"?\n\x13MultiServerResponse\x12(\n\tresponses\x18\x01 \x03(\x0b\x32\x15.proto.ServerResponse\"0\n\x0eServerResponse\x12\r\n\x05\x65rror\x18\x01 \x01(\t\x12\x0f\n\x07version\x18\x02 \x01(\t\"6\n\x0fMultiKeyRequest\x12#\n\x08requests\x18\x01 \x03(\x0b\x32\x11.proto.KeyRequest\"\x19\n\nKeyRequest\x12\x0b\n\x03key\x18\x01 \x01(\t\"%\n\x12ListSymbolsRequest\x12\x0f\n\x07results\x18\x01 \x03(\t\"&\n\x13ListSymbolsResponse\x12\x0f\n\x07results\x18\x01 \x03(\t\"\x16\n\x14ServerVersionRequest\"(\n\x15ServerVersionResponse\x12\x0f\n\x07version\x18\x01 \x01(\t*\xb6\x01\n\x08\x44\x61taType\x12\x0b\n\x07UNKNOWN\x10\x00\x12\x0b\n\x07\x46LOAT32\x10\x01\x12\t\n\x05INT32\x10\x02\x12\x0b\n\x07\x46LOAT64\x10\x03\x12\t\n\x05INT64\x10\x04\x12\t\n\x05\x45POCH\x10\x05\x12\x08\n\x04\x42YTE\x10\x06\x12\x08\n\x04\x42OOL\x10\x07\x12\x08\n\x04NONE\x10\x08\x12\n\n\x06STRING\x10\t\x12\t\n\x05INT16\x10\n\x12\t\n\x05UINT8\x10\x0b\x12\n\n\x06UINT16\x10\x0c\x12\n\n\x06UINT32\x10\r\x12\n\n\x06UINT64\x10\x0e\x32\xdb\x02\n\x0bMarketstore\x12<\n\x05Query\x12\x18.proto.MultiQueryRequest\x1a\x19.proto.MultiQueryResponse\x12=\n\x05Write\x12\x18.proto.MultiWriteRequest\x1a\x1a.proto.MultiServerResponse\x12=\n\x07\x44\x65stroy\x12\x16.proto.MultiKeyRequest\x1a\x1a.proto.MultiServerResponse\x12\x44\n\x0bListSymbols\x12\x19.proto.ListSymbolsRequest\x1a\x1a.proto.ListSymbolsResponse\x12J\n\rServerVersion\x12\x1b.proto.ServerVersionRequest\x1a\x1c.proto.ServerVersionResponseb\x06proto3'
+  serialized_pb=b'\n%pymarketstore/proto/marketstore.proto\x12\x05proto\"8\n\tDataShape\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x1d\n\x04type\x18\x02 \x01(\x0e\x32\x0f.proto.DataType\"\x90\x02\n\x11NumpyMultiDataset\x12!\n\x04\x64\x61ta\x18\x01 \x01(\x0b\x32\x13.proto.NumpyDataset\x12=\n\x0bstart_index\x18\x02 \x03(\x0b\x32(.proto.NumpyMultiDataset.StartIndexEntry\x12\x36\n\x07lengths\x18\x03 \x03(\x0b\x32%.proto.NumpyMultiDataset.LengthsEntry\x1a\x31\n\x0fStartIndexEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\x05:\x02\x38\x01\x1a.\n\x0cLengthsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\x05:\x02\x38\x01\"\x86\x01\n\x0cNumpyDataset\x12\x14\n\x0c\x63olumn_types\x18\x01 \x03(\t\x12\x14\n\x0c\x63olumn_names\x18\x02 \x03(\t\x12\x13\n\x0b\x63olumn_data\x18\x03 \x03(\x0c\x12\x0e\n\x06length\x18\x04 \x01(\x05\x12%\n\x0b\x64\x61ta_shapes\x18\x05 \x03(\x0b\x32\x10.proto.DataShape\":\n\x11MultiQueryRequest\x12%\n\x08requests\x18\x01 \x03(\x0b\x32\x13.proto.QueryRequest\"\xa0\x02\n\x0cQueryRequest\x12\x18\n\x10is_sql_statement\x18\x01 \x01(\x08\x12\x15\n\rsql_statement\x18\x02 \x01(\t\x12\x13\n\x0b\x64\x65stination\x18\x03 \x01(\t\x12\x14\n\x0ckey_category\x18\x04 \x01(\t\x12\x13\n\x0b\x65poch_start\x18\x05 \x01(\x03\x12\x19\n\x11\x65poch_start_nanos\x18\x06 \x01(\x03\x12\x11\n\tepoch_end\x18\x07 \x01(\x03\x12\x17\n\x0f\x65poch_end_nanos\x18\x08 \x01(\x03\x12\x1a\n\x12limit_record_count\x18\t \x01(\x05\x12\x18\n\x10limit_from_start\x18\n \x01(\x08\x12\x0f\n\x07\x63olumns\x18\x0b \x03(\t\x12\x11\n\tfunctions\x18\x0c \x03(\t\"`\n\x12MultiQueryResponse\x12\'\n\tresponses\x18\x01 \x03(\x0b\x32\x14.proto.QueryResponse\x12\x0f\n\x07version\x18\x02 \x01(\t\x12\x10\n\x08timezone\x18\x03 \x01(\t\"9\n\rQueryResponse\x12(\n\x06result\x18\x01 \x01(\x0b\x32\x18.proto.NumpyMultiDataset\":\n\x11MultiWriteRequest\x12%\n\x08requests\x18\x01 \x03(\x0b\x32\x13.proto.WriteRequest\"R\n\x0cWriteRequest\x12&\n\x04\x64\x61ta\x18\x01 \x01(\x0b\x32\x18.proto.NumpyMultiDataset\x12\x1a\n\x12is_variable_length\x18\x02 \x01(\x08\"?\n\x13MultiServerResponse\x12(\n\tresponses\x18\x01 \x03(\x0b\x32\x15.proto.ServerResponse\"0\n\x0eServerResponse\x12\r\n\x05\x65rror\x18\x01 \x01(\t\x12\x0f\n\x07version\x18\x02 \x01(\t\"6\n\x0fMultiKeyRequest\x12#\n\x08requests\x18\x01 \x03(\x0b\x32\x11.proto.KeyRequest\"\x19\n\nKeyRequest\x12\x0b\n\x03key\x18\x01 \x01(\t\"q\n\x12ListSymbolsRequest\x12\x30\n\x06\x66ormat\x18\x01 \x01(\x0e\x32 .proto.ListSymbolsRequest.Format\")\n\x06\x46ormat\x12\n\n\x06SYMBOL\x10\x00\x12\x13\n\x0fTIME_BUCKET_KEY\x10\x01\"&\n\x13ListSymbolsResponse\x12\x0f\n\x07results\x18\x01 \x03(\t\"\x16\n\x14ServerVersionRequest\"(\n\x15ServerVersionResponse\x12\x0f\n\x07version\x18\x01 \x01(\t*\xb6\x01\n\x08\x44\x61taType\x12\x0b\n\x07UNKNOWN\x10\x00\x12\x0b\n\x07\x46LOAT32\x10\x01\x12\t\n\x05INT32\x10\x02\x12\x0b\n\x07\x46LOAT64\x10\x03\x12\t\n\x05INT64\x10\x04\x12\t\n\x05\x45POCH\x10\x05\x12\x08\n\x04\x42YTE\x10\x06\x12\x08\n\x04\x42OOL\x10\x07\x12\x08\n\x04NONE\x10\x08\x12\n\n\x06STRING\x10\t\x12\t\n\x05INT16\x10\n\x12\t\n\x05UINT8\x10\x0b\x12\n\n\x06UINT16\x10\x0c\x12\n\n\x06UINT32\x10\r\x12\n\n\x06UINT64\x10\x0e\x32\xdb\x02\n\x0bMarketstore\x12<\n\x05Query\x12\x18.proto.MultiQueryRequest\x1a\x19.proto.MultiQueryResponse\x12=\n\x05Write\x12\x18.proto.MultiWriteRequest\x1a\x1a.proto.MultiServerResponse\x12=\n\x07\x44\x65stroy\x12\x16.proto.MultiKeyRequest\x1a\x1a.proto.MultiServerResponse\x12\x44\n\x0bListSymbols\x12\x19.proto.ListSymbolsRequest\x1a\x1a.proto.ListSymbolsResponse\x12J\n\rServerVersion\x12\x1b.proto.ServerVersionRequest\x1a\x1c.proto.ServerVersionResponseb\x06proto3'
 )
 
 _DATATYPE = _descriptor.EnumDescriptor(
@@ -91,8 +91,8 @@ _DATATYPE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=1514,
-  serialized_end=1696,
+  serialized_start=1590,
+  serialized_end=1772,
 )
 _sym_db.RegisterEnumDescriptor(_DATATYPE)
 
@@ -113,6 +113,28 @@ UINT16 = 12
 UINT32 = 13
 UINT64 = 14
 
+
+_LISTSYMBOLSREQUEST_FORMAT = _descriptor.EnumDescriptor(
+  name='Format',
+  full_name='proto.ListSymbolsRequest.Format',
+  filename=None,
+  file=DESCRIPTOR,
+  values=[
+    _descriptor.EnumValueDescriptor(
+      name='SYMBOL', index=0, number=0,
+      serialized_options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='TIME_BUCKET_KEY', index=1, number=1,
+      serialized_options=None,
+      type=None),
+  ],
+  containing_type=None,
+  serialized_options=None,
+  serialized_start=1440,
+  serialized_end=1481,
+)
+_sym_db.RegisterEnumDescriptor(_LISTSYMBOLSREQUEST_FORMAT)
 
 
 _DATASHAPE = _descriptor.Descriptor(
@@ -754,9 +776,9 @@ _LISTSYMBOLSREQUEST = _descriptor.Descriptor(
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='results', full_name='proto.ListSymbolsRequest.results', index=0,
-      number=1, type=9, cpp_type=9, label=3,
-      has_default_value=False, default_value=[],
+      name='format', full_name='proto.ListSymbolsRequest.format', index=0,
+      number=1, type=14, cpp_type=8, label=1,
+      has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
@@ -765,6 +787,7 @@ _LISTSYMBOLSREQUEST = _descriptor.Descriptor(
   ],
   nested_types=[],
   enum_types=[
+    _LISTSYMBOLSREQUEST_FORMAT,
   ],
   serialized_options=None,
   is_extendable=False,
@@ -773,7 +796,7 @@ _LISTSYMBOLSREQUEST = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=1368,
-  serialized_end=1405,
+  serialized_end=1481,
 )
 
 
@@ -803,8 +826,8 @@ _LISTSYMBOLSRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1407,
-  serialized_end=1445,
+  serialized_start=1483,
+  serialized_end=1521,
 )
 
 
@@ -827,8 +850,8 @@ _SERVERVERSIONREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1447,
-  serialized_end=1469,
+  serialized_start=1523,
+  serialized_end=1545,
 )
 
 
@@ -858,8 +881,8 @@ _SERVERVERSIONRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1471,
-  serialized_end=1511,
+  serialized_start=1547,
+  serialized_end=1587,
 )
 
 _DATASHAPE.fields_by_name['type'].enum_type = _DATATYPE
@@ -876,6 +899,8 @@ _MULTIWRITEREQUEST.fields_by_name['requests'].message_type = _WRITEREQUEST
 _WRITEREQUEST.fields_by_name['data'].message_type = _NUMPYMULTIDATASET
 _MULTISERVERRESPONSE.fields_by_name['responses'].message_type = _SERVERRESPONSE
 _MULTIKEYREQUEST.fields_by_name['requests'].message_type = _KEYREQUEST
+_LISTSYMBOLSREQUEST.fields_by_name['format'].enum_type = _LISTSYMBOLSREQUEST_FORMAT
+_LISTSYMBOLSREQUEST_FORMAT.containing_type = _LISTSYMBOLSREQUEST
 DESCRIPTOR.message_types_by_name['DataShape'] = _DATASHAPE
 DESCRIPTOR.message_types_by_name['NumpyMultiDataset'] = _NUMPYMULTIDATASET
 DESCRIPTOR.message_types_by_name['NumpyDataset'] = _NUMPYDATASET
@@ -1041,8 +1066,8 @@ _MARKETSTORE = _descriptor.ServiceDescriptor(
   file=DESCRIPTOR,
   index=0,
   serialized_options=None,
-  serialized_start=1699,
-  serialized_end=2046,
+  serialized_start=1775,
+  serialized_end=2122,
   methods=[
   _descriptor.MethodDescriptor(
     name='Query',
