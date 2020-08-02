@@ -85,7 +85,7 @@ class GRPCClient(object):
                 # support nanosec
                 start_nanosec = int(param.start.value % (10 ** 9))
                 if start_nanosec != 0:
-                   req.epoch_start_nanos = start_nanosec
+                    req.epoch_start_nanos = start_nanosec
 
             if param.end is not None:
                 req.epoch_end = int(param.end.value / (10 ** 9))
@@ -93,7 +93,7 @@ class GRPCClient(object):
                 # support nanosec
                 end_nanosec = int(param.end.value % (10 ** 9))
                 if end_nanosec != 0:
-                   req.epoch_end_nanos = end_nanosec
+                    req.epoch_end_nanos = end_nanosec
 
             if param.end is not None:
                 req.epoch_end = int(param.end.value / (10 ** 9))
@@ -107,7 +107,9 @@ class GRPCClient(object):
         return reqs
 
     def list_symbols(self) -> List[str]:
-        resp = self.stub.ListSymbols(proto.ListSymbolsRequest())
+        resp = self.stub.ListSymbols(proto.ListSymbolsRequest(
+            format=proto.ListSymbolsRequest.Format.TIME_BUCKET_KEY)
+        )
         return resp.results
 
     def destroy(self, tbk: str) -> proto.MultiServerResponse:
