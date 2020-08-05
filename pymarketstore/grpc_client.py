@@ -8,6 +8,7 @@ import pymarketstore.proto.marketstore_pb2 as proto
 import pymarketstore.proto.marketstore_pb2_grpc as gp
 from .params import Params
 from .results import QueryReply
+from .client import ListSymbolsFormat
 
 import numpy as np
 from typing import List, Union
@@ -106,10 +107,17 @@ class GRPCClient(object):
             reqs.requests.append(req)
         return reqs
 
-    def list_symbols(self) -> List[str]:
-        resp = self.stub.ListSymbols(proto.ListSymbolsRequest(
-            format=proto.ListSymbolsRequest.Format.TIME_BUCKET_KEY)
-        )
+    def list_symbols(self, fmt: ListSymbolsFormat) -> List[str]:
+        if fmt == ListSymbolsFormat.TBK:
+            req_format = proto.ListSymbolsRequest.Format.TIME_BUCKET_KEY
+        else:
+            req_format = proto.ListSymbolsRequest.Format.SYMBOL
+
+        resp = self.stub.ListSymbols(proto.ListSymbolsRequest(req_format))
+
+        if resp is None:
+            return []
+
         return resp.results
 
     def destroy(self, tbk: str) -> proto.MultiServerResponse:

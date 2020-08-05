@@ -3,6 +3,7 @@ from __future__ import absolute_import
 import logging
 import re
 from typing import List, Dict, Union
+from enum import Enum
 
 import numpy as np
 
@@ -21,6 +22,16 @@ data_type_conv = {
 }
 
 http_regex = re.compile(r'^https?://(.+):\d+/rpc')  # http:// or https://
+
+
+class ListSymbolsFormat(Enum):
+    """
+    format of the list_symbols response.
+    """
+    # symbol names only. (e.g. ["AAPL", "AMZN", ...])
+    SYMBOL = "symbol"
+    # {symbol}/{timeframe}/{attribute_group} format. (e.g. ["AAPL/1Min/TICK", "AMZN/1Sec/OHLCV",...])
+    TBK = "tbk"
 
 
 class Client:
@@ -65,8 +76,8 @@ class Client:
         """
         return self.client.write(recarray, tbk, isvariablelength=isvariablelength)
 
-    def list_symbols(self) -> List[str]:
-        return self.client.list_symbols()
+    def list_symbols(self, fmt: ListSymbolsFormat = ListSymbolsFormat.SYMBOL) -> List[str]:
+        return self.client.list_symbols(fmt)
 
     def destroy(self, tbk: str) -> Dict:
         return self.client.destroy(tbk)
