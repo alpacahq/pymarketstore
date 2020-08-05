@@ -10,10 +10,9 @@ import pandas as pd
 import requests
 
 from .jsonrpc import MsgpackRpcClient
-from .params import Params
+from .params import Params, ListSymbolsFormat
 from .results import QueryReply
 from .stream import StreamConn
-from .client import ListSymbolsFormat
 
 logger = logging.getLogger(__name__)
 
@@ -111,7 +110,7 @@ class JsonRpcClient(object):
             'requests': reqs,
         }
 
-    def list_symbols(self, fmt: ListSymbolsFormat) -> List[str]:
+    def list_symbols(self, fmt: ListSymbolsFormat = ListSymbolsFormat.SYMBOL) -> List[str]:
         req = {'format': str(fmt.value)}
         reply = self._request('DataService.ListSymbols', **req)
 

@@ -3,13 +3,12 @@ from __future__ import absolute_import
 import logging
 import re
 from typing import List, Dict, Union
-from enum import Enum
 
 import numpy as np
 
 from .grpc_client import GRPCClient
 from .jsonrpc_client import JsonRpcClient
-from .params import Params
+from .params import Params, ListSymbolsFormat
 from .results import QueryReply
 
 logger = logging.getLogger(__name__)
@@ -22,16 +21,6 @@ data_type_conv = {
 }
 
 http_regex = re.compile(r'^https?://(.+):\d+/rpc')  # http:// or https://
-
-
-class ListSymbolsFormat(Enum):
-    """
-    format of the list_symbols response.
-    """
-    # symbol names only. (e.g. ["AAPL", "AMZN", ...])
-    SYMBOL = "symbol"
-    # {symbol}/{timeframe}/{attribute_group} format. (e.g. ["AAPL/1Min/TICK", "AMZN/1Sec/OHLCV",...])
-    TBK = "tbk"
 
 
 class Client:
