@@ -5,7 +5,6 @@ from .grpc_client import GRPCClient  # noqa
 
 # alias
 Param = Params  # noqa
-ListSymbolsFormat = ListSymbolsFormat  # noqa
 
 from .stream import StreamConn  # noqa
 
