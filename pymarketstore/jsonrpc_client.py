@@ -1,37 +1,22 @@
-from __future__ import absolute_import
-
 import logging
-import re
-from typing import Any
-from typing import Union, Dict, List
-
 import numpy as np
-import pandas as pd
+import re
 import requests
+
+from typing import Union, Dict, List
 
 from .jsonrpc import MsgpackRpcClient
 from .params import Params
 from .results import QueryReply
 from .stream import StreamConn
+from .utils import is_iterable
 
 logger = logging.getLogger(__name__)
 
 
-def isiterable(something: Any) -> bool:
-    return isinstance(something, (list, tuple, set))
-
-
-def get_timestamp(value: Union[int, str]) -> pd.Timestamp:
-    if value is None:
-        return None
-    if isinstance(value, (int, np.integer)):
-        return pd.Timestamp(value, unit='s')
-    return pd.Timestamp(value)
-
-
 class JsonRpcClient(object):
 
-    def __init__(self, endpoint: str = 'http://localhost:5993/rpc', ):
+    def __init__(self, endpoint: str = 'http://localhost:5993/rpc'):
         self.endpoint = endpoint
         self.rpc = MsgpackRpcClient(self.endpoint)
 
@@ -42,8 +27,8 @@ class JsonRpcClient(object):
             logger.exception(exc)
             raise
 
-    def query(self, params: Params) -> QueryReply:
-        if not isiterable(params):
+    def query(self, params: Union[Params, List[Params]]) -> QueryReply:
+        if not is_iterable(params):
             params = [params]
 
         reply = self._request('DataService.Query', requests=[

@@ -1,22 +1,16 @@
-from __future__ import absolute_import
-
-import logging
-
 import grpc
-
-import pymarketstore.proto.marketstore_pb2 as proto
-import pymarketstore.proto.marketstore_pb2_grpc as gp
-from .params import Params
-from .results import QueryReply
-
+import logging
 import numpy as np
+
 from typing import List, Union
 
+from .params import Params
+from .proto import marketstore_pb2 as proto
+from .proto import marketstore_pb2_grpc as gp
+from .results import QueryReply
+from .utils import is_iterable
+
 logger = logging.getLogger(__name__)
-
-
-def isiterable(something):
-    return isinstance(something, (list, tuple, set))
 
 
 class GRPCClient(object):
@@ -27,7 +21,7 @@ class GRPCClient(object):
         self.stub = gp.MarketstoreStub(self.channel)
 
     def query(self, params: Union[Params, List[Params]]) -> QueryReply:
-        if not isiterable(params):
+        if not is_iterable(params):
             params = [params]
 
         reply = self.stub.Query(self._build_query(params))
@@ -67,7 +61,7 @@ class GRPCClient(object):
         return self.stub.Write(req)
 
     def _build_query(self, params: Union[Params, List[Params]]) -> proto.MultiQueryRequest:
-        if not isiterable(params):
+        if not is_iterable(params):
             params = [params]
 
         return proto.MultiQueryRequest(requests=[p.to_query_request() for p in params])

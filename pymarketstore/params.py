@@ -1,22 +1,6 @@
 from typing import Union, List, Any
-import pandas as pd
-import numpy as np
 
-def get_timestamp(value: Union[int, str]) -> pd.Timestamp:
-    if value is None:
-        return None
-    if isinstance(value, (int, np.integer)):
-        return pd.Timestamp(value, unit='s')
-    return pd.Timestamp(value)
-
-
-def isiterable(something: Any) -> bool:
-    """
-    check if something is a list, tuple or set
-    :param something: any object
-    :return: bool. true if something is a list, tuple or set
-    """
-    return isinstance(something, (list, tuple, set))
+from .utils import get_timestamp, is_iterable
 
 
 class Params(object):
@@ -25,7 +9,7 @@ class Params(object):
                  start: Union[int, str] = None, end: Union[int, str] = None,
                  limit: int = None, limit_from_start: bool = None,
                  columns: List[str] = None):
-        if not isiterable(symbols):
+        if not is_iterable(symbols):
             symbols = [symbols]
         self.tbk = ','.join(symbols) + "/" + timeframe + "/" + attrgroup
         self.key_category = None  # server default
