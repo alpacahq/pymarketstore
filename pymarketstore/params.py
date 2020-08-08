@@ -1,6 +1,17 @@
+from enum import Enum
 from typing import Union, List, Any
 
 from .utils import get_timestamp, is_iterable
+
+
+class ListSymbolsFormat(Enum):
+    """
+    format of the list_symbols response.
+    """
+    # symbol names only. (e.g. ["AAPL", "AMZN", ...])
+    SYMBOL = "symbol"
+    # {symbol}/{timeframe}/{attribute_group} format. (e.g. ["AAPL/1Min/TICK", "AMZN/1Sec/OHLCV",...])
+    TBK = "tbk"
 
 
 class Params(object):

@@ -6,7 +6,7 @@ import requests
 from typing import Union, Dict, List
 
 from .jsonrpc import MsgpackRpcClient
-from .params import Params
+from .params import Params, ListSymbolsFormat
 from .results import QueryReply
 from .stream import StreamConn
 from .utils import is_iterable
@@ -62,9 +62,10 @@ class JsonRpcClient(object):
             raise requests.exceptions.ConnectionError(
                 "Could not contact server")
 
-    def list_symbols(self) -> List[str]:
-        reply = self._request('DataService.ListSymbols')
-        if 'Results' in reply.keys():
+    def list_symbols(self, fmt: ListSymbolsFormat = ListSymbolsFormat.SYMBOL) -> List[str]:
+        reply = self._request('DataService.ListSymbols', format=fmt.value)
+
+        if 'Results' in reply:
             return reply['Results']
         return []
 

@@ -4,7 +4,7 @@ import numpy as np
 
 from typing import List, Union
 
-from .params import Params
+from .params import Params, ListSymbolsFormat
 from .proto import marketstore_pb2 as proto
 from .proto import marketstore_pb2_grpc as gp
 from .results import QueryReply
@@ -66,10 +66,16 @@ class GRPCClient(object):
 
         return proto.MultiQueryRequest(requests=[p.to_query_request() for p in params])
 
-    def list_symbols(self) -> List[str]:
-        resp = self.stub.ListSymbols(proto.ListSymbolsRequest(
-            format=proto.ListSymbolsRequest.Format.TIME_BUCKET_KEY)
-        )
+    def list_symbols(self, fmt: ListSymbolsFormat = ListSymbolsFormat.SYMBOL) -> List[str]:
+        if fmt == ListSymbolsFormat.TBK:
+            req_format = proto.ListSymbolsRequest.Format.TIME_BUCKET_KEY
+        else:
+            req_format = proto.ListSymbolsRequest.Format.SYMBOL
+
+        resp = self.stub.ListSymbols(proto.ListSymbolsRequest(format=req_format))
+
+        if resp is None:
+            return []
         return resp.results
 
     def destroy(self, tbk: str) -> proto.MultiServerResponse:

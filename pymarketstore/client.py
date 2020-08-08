@@ -6,7 +6,7 @@ from typing import List, Dict, Union
 
 from .grpc_client import GRPCClient
 from .jsonrpc_client import JsonRpcClient
-from .params import Params
+from .params import Params, ListSymbolsFormat
 from .results import QueryReply
 
 logger = logging.getLogger(__name__)
@@ -48,8 +48,8 @@ class Client:
         """
         return self.client.write(recarray, tbk, isvariablelength=isvariablelength)
 
-    def list_symbols(self) -> List[str]:
-        return self.client.list_symbols()
+    def list_symbols(self, fmt: ListSymbolsFormat = ListSymbolsFormat.SYMBOL) -> List[str]:
+        return self.client.list_symbols(fmt)
 
     def destroy(self, tbk: str) -> Dict:
         return self.client.destroy(tbk)
