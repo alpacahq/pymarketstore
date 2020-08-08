@@ -1,5 +1,6 @@
 import logging
 import numpy as np
+import pandas as pd
 import re
 import requests
 
@@ -9,7 +10,7 @@ from .jsonrpc import MsgpackRpcClient
 from .params import Params, ListSymbolsFormat
 from .results import QueryReply
 from .stream import StreamConn
-from .utils import is_iterable
+from .utils import is_iterable, timeseries_data_to_write_request
 
 logger = logging.getLogger(__name__)
 
@@ -36,31 +37,21 @@ class JsonRpcClient(object):
         ])
         return QueryReply.from_response(reply)
 
-    def write(self, recarray: np.array, tbk: str, isvariablelength: bool = False) -> str:
-        data = {}
-        data['types'] = [
-            recarray.dtype[name].str.replace('<', '')
-            for name in recarray.dtype.names
-        ]
-        data['names'] = recarray.dtype.names
-        data['data'] = [
-            bytes(memoryview(recarray[name]))
-            for name in recarray.dtype.names
-        ]
-        data['length'] = len(recarray)
-        data['startindex'] = {tbk: 0}
-        data['lengths'] = {tbk: len(recarray)}
-        write_request = {}
-        write_request['dataset'] = data
-        write_request['is_variable_length'] = isvariablelength
-        writer = {}
-        writer['requests'] = [write_request]
-
-        try:
-            return self.rpc.call("DataService.Write", **writer)
-        except requests.exceptions.ConnectionError:
-            raise requests.exceptions.ConnectionError(
-                "Could not contact server")
+    def write(self, data: Union[pd.DataFrame, pd.Series, np.ndarray, np.recarray],
+              tbk: str,
+              isvariablelength: bool = False,
+              ) -> dict:
+        dataset = timeseries_data_to_write_request(data, tbk)
+        return self.rpc.call("DataService.Write", requests=[dict(
+            dataset=dict(
+                types=dataset['column_types'],
+                names=dataset['column_names'],
+                data=dataset['column_data'],
+                startindex={tbk: 0},
+                lengths={tbk: len(data)},
+            ),
+            is_variable_length=isvariablelength,
+        )])
 
     def list_symbols(self, fmt: ListSymbolsFormat = ListSymbolsFormat.SYMBOL) -> List[str]:
         reply = self._request('DataService.ListSymbols', format=fmt.value)

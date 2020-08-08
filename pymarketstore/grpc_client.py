@@ -1,6 +1,7 @@
 import grpc
 import logging
 import numpy as np
+import pandas as pd
 
 from typing import List, Union
 
@@ -8,7 +9,7 @@ from .params import Params, ListSymbolsFormat
 from .proto import marketstore_pb2 as proto
 from .proto import marketstore_pb2_grpc as gp
 from .results import QueryReply
-from .utils import is_iterable
+from .utils import is_iterable, timeseries_data_to_write_request
 
 logger = logging.getLogger(__name__)
 
@@ -32,37 +33,18 @@ class GRPCClient(object):
         reply = self.stub.Query(self._build_query(params))
         return QueryReply.from_grpc_response(reply)
 
-    def write(self, recarray: np.array, tbk: str, isvariablelength: bool = False) -> proto.MultiServerResponse:
-        types = [
-            recarray.dtype[name].str.replace('<', '')
-            for name in recarray.dtype.names
-        ]
-        names = recarray.dtype.names
-        data = [
-            bytes(memoryview(recarray[name]))
-            for name in recarray.dtype.names
-        ]
-        length = len(recarray)
-        start_index = {tbk: 0}
-        lengths = {tbk: len(recarray)}
-
-        req = proto.MultiWriteRequest(requests=[
-            proto.WriteRequest(
-                data=proto.NumpyMultiDataset(
-                    data=proto.NumpyDataset(
-                        column_types=types,
-                        column_names=names,
-                        column_data=data,
-                        length=length,
-                        # data_shapes = [],
-                    ),
-                    start_index=start_index,
-                    lengths=lengths,
-                ),
-                is_variable_length=isvariablelength,
-            )
-        ])
-
+    def write(self, data: Union[pd.DataFrame, pd.Series, np.ndarray, np.recarray],
+              tbk: str,
+              isvariablelength: bool = False,
+              ) -> proto.MultiServerResponse:
+        req = proto.MultiWriteRequest(requests=[dict(
+            data=dict(
+                data=timeseries_data_to_write_request(data, tbk),
+                start_index={tbk: 0},
+                lengths={tbk: len(data)},
+            ),
+            is_variable_length=isvariablelength,
+        )])
         return self.stub.Write(req)
 
     def _build_query(self, params: Union[Params, List[Params]]) -> proto.MultiQueryRequest:

@@ -1,3 +1,5 @@
+import pandas as pd
+
 from ast import literal_eval
 from pymarketstore import results
 
@@ -34,6 +36,11 @@ testdata2 = literal_eval(r"""
  'timezone': 'America/New_York',
  'version': 'dev'}
 """)  # noqa: E501
+
+btc_array = results.decode_responses(testdata1['responses'])[0]['BTC/1Min/OHLCV']
+btc_bytes = testdata1['responses'][0]['result']['data']
+btc_df = pd.DataFrame(btc_array).set_index('Epoch')
+btc_df.index = pd.DatetimeIndex(btc_df.index * 10**9, tz='UTC')
 
 
 def test_results():
