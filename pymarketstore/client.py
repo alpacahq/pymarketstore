@@ -51,9 +51,6 @@ class Client:
         """
         return self.client.query(params)
 
-    def _build_query(self, params: Union[Params, List[Params]]) -> Dict:
-        return self.client.build_query(params)
-
     def write(self, recarray: np.array, tbk: str, isvariablelength: bool = False) -> str:
         """
         execute WRITE to MarketStore server

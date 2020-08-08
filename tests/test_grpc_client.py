@@ -50,7 +50,7 @@ def test_build_query():
     p = pymkts.Params('TSLA', '1Min', 'OHLCV', 1500000000, 4294967296)
 
     # --- when ---
-    query = c.build_query([p])
+    query = c._build_query([p])
 
     # --- then ---
     assert query == MultiQueryRequest(
@@ -80,6 +80,7 @@ def test_destroy(stub):
 
     # --- then ---
     assert c.stub.Destroy.called == 1
+
 
 @patch('pymarketstore.proto.marketstore_pb2_grpc.MarketstoreStub')
 def test_server_version(stub):

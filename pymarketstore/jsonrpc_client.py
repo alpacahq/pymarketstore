@@ -45,8 +45,10 @@ class JsonRpcClient(object):
     def query(self, params: Params) -> QueryReply:
         if not isiterable(params):
             params = [params]
-        query = self.build_query(params)
-        reply = self._request('DataService.Query', **query)
+
+        reply = self._request('DataService.Query', requests=[
+            p.to_query_request() for p in params
+        ])
         return QueryReply.from_response(reply)
 
     def write(self, recarray: np.array, tbk: str, isvariablelength: bool = False) -> str:
@@ -74,41 +76,6 @@ class JsonRpcClient(object):
         except requests.exceptions.ConnectionError:
             raise requests.exceptions.ConnectionError(
                 "Could not contact server")
-
-    def build_query(self, params: Union[Params, List[Params]]) -> Dict:
-        reqs = []
-        if not isiterable(params):
-            params = [params]
-        for param in params:
-            req = {
-                'destination': param.tbk,
-            }
-            if param.key_category is not None:
-                req['key_category'] = param.key_category
-            if param.start is not None:
-                req['epoch_start'], start_nanosec = divmod(param.start.value, 10 ** 9)
-
-                # support nanosec
-                if start_nanosec != 0:
-                    req['epoch_start_nanos'] = start_nanosec
-
-            if param.end is not None:
-                req['epoch_end'], end_nanosec = divmod(param.end.value, 10 ** 9)
-
-                # support nanosec
-                if end_nanosec != 0:
-                    req['epoch_end_nanos'] = end_nanosec
-
-            if param.limit is not None:
-                req['limit_record_count'] = int(param.limit)
-            if param.limit_from_start is not None:
-                req['limit_from_start'] = bool(param.limit_from_start)
-            if param.functions is not None:
-                req['functions'] = param.functions
-            reqs.append(req)
-        return {
-            'requests': reqs,
-        }
 
     def list_symbols(self) -> List[str]:
         reply = self._request('DataService.ListSymbols')

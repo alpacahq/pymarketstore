@@ -45,6 +45,26 @@ class Params(object):
             setattr(self, key, val)
         return self
 
+    def to_query_request(self) -> dict:
+        query = {'destination': self.tbk}
+        if self.key_category is not None:
+            query['key_category'] = self.key_category
+        if self.start is not None:
+            query['epoch_start'], start_nanos = divmod(self.start.value, 10 ** 9)
+            if start_nanos != 0:
+                query['epoch_start_nanos'] = start_nanos
+        if self.end is not None:
+            query['epoch_end'], end_nanos = divmod(self.end.value, 10 ** 9)
+            if end_nanos != 0:
+                query['epoch_end_nanos'] = end_nanos
+        if self.limit is not None:
+            query['limit_record_count'] = self.limit
+        if self.limit_from_start is not None:
+            query['limit_from_start'] = bool(self.limit_from_start)
+        if self.functions is not None:
+            query['functions'] = self.functions
+        return query
+
     def __repr__(self) -> str:
         content = ('tbk={}, start={}, end={}, '.format(
             self.tbk, self.start, self.end,
