@@ -1,6 +1,8 @@
 from typing import Union, List, Any
 import pandas as pd
 import numpy as np
+from enum import Enum
+
 
 def get_timestamp(value: Union[int, str]) -> pd.Timestamp:
     if value is None:
@@ -17,6 +19,16 @@ def isiterable(something: Any) -> bool:
     :return: bool. true if something is a list, tuple or set
     """
     return isinstance(something, (list, tuple, set))
+
+
+class ListSymbolsFormat(Enum):
+    """
+    format of the list_symbols response.
+    """
+    # symbol names only. (e.g. ["AAPL", "AMZN", ...])
+    SYMBOL = "symbol"
+    # {symbol}/{timeframe}/{attribute_group} format. (e.g. ["AAPL/1Min/TICK", "AMZN/1Sec/OHLCV",...])
+    TBK = "tbk"
 
 
 class Params(object):
