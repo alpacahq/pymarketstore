@@ -23,7 +23,12 @@ class GRPCClient(object):
 
     def __init__(self, endpoint: str = 'localhost:5995'):
         self.endpoint = endpoint
-        self.channel = grpc.insecure_channel(endpoint)
+        # set max message sizes
+        options = [
+            ('grpc.max_send_message_length', 1 * 1024 ** 3),  # 1GB
+            ('grpc.max_receive_message_length', 1 * 1024 ** 3),  # 1GB
+        ]
+        self.channel = grpc.insecure_channel(endpoint, options=options)
         self.stub = gp.MarketstoreStub(self.channel)
 
     def query(self, params: Union[Params, List[Params]]) -> QueryReply:
