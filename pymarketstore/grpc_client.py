@@ -25,8 +25,8 @@ class GRPCClient(object):
         self.endpoint = endpoint
         # set max message sizes
         options = [
-            ('grpc.max_send_message_length', 1 << 31 - 1),
-            ('grpc.max_receive_message_length', 1 << 31 - 1),
+            ('grpc.max_send_message_length', 1 * 1024 ** 3),  # 1GB
+            ('grpc.max_receive_message_length', 1 * 1024 ** 3),  # 1GB
         ]
         self.channel = grpc.insecure_channel(endpoint, options=options)
         self.stub = gp.MarketstoreStub(self.channel)
