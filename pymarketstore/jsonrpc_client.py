@@ -64,10 +64,7 @@ class JsonRpcClient(object):
 
     def list_symbols(self, fmt: ListSymbolsFormat = ListSymbolsFormat.SYMBOL) -> List[str]:
         reply = self._request('DataService.ListSymbols', format=fmt.value)
-
-        if 'Results' in reply:
-            return reply['Results']
-        return []
+        return reply.get('Results') or []
 
     def destroy(self, tbk: str) -> Dict:
         """
