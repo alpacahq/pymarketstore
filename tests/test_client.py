@@ -10,12 +10,6 @@ except ImportError:
 import pytest
 
 
-def test_init():
-    p = pymkts.Params('TSLA', '1Min', 'OHLCV', 1500000000, 4294967296)
-    tbk = "TSLA/1Min/OHLCV"
-    assert p.tbk == tbk
-
-
 params = [
     ("http://127.0.0.1:5994/rpc", False, "http://127.0.0.1:5994/rpc", pymkts.jsonrpc_client.JsonRpcClient),
     ("http://192.168.1.10:5993/rpc", True, "192.168.1.10:5995", pymkts.grpc_client.GRPCClient),
@@ -48,32 +42,6 @@ def test_write(MsgpackRpcClient):
     tbk = 'TEST/1Min/TICK'
     c.write(data, tbk)
     assert MsgpackRpcClient().call.called == 1
-
-
-def test_build_query():
-    c = pymkts.Client("127.0.0.1:5994")
-    p = pymkts.Params('TSLA', '1Min', 'OHLCV', 1500000000, 4294967296)
-    p2 = pymkts.Params('FORD', '5Min', 'OHLCV', 1000000000, 4294967296)
-    query_dict = c._build_query([p, p2])
-    test_query_dict = {}
-    test_lst = []
-    param_dict1 = {
-        'destination': 'TSLA/1Min/OHLCV',
-        'epoch_start': 1500000000,
-        'epoch_end': 4294967296
-    }
-    test_lst.append(param_dict1)
-    param_dict2 = {
-        'destination': 'FORD/5Min/OHLCV',
-        'epoch_start': 1000000000,
-        'epoch_end': 4294967296
-    }
-    test_lst.append(param_dict2)
-    test_query_dict['requests'] = test_lst
-    assert query_dict == test_query_dict
-
-    query_dict = c._build_query(p)
-    assert query_dict == {'requests': [param_dict1]}
 
 
 @patch('pymarketstore.jsonrpc_client.MsgpackRpcClient')

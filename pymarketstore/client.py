@@ -1,10 +1,8 @@
-from __future__ import absolute_import
-
 import logging
-import re
-from typing import List, Dict, Union
-
 import numpy as np
+import re
+
+from typing import List, Dict, Union
 
 from .grpc_client import GRPCClient
 from .jsonrpc_client import JsonRpcClient
@@ -13,46 +11,31 @@ from .results import QueryReply
 
 logger = logging.getLogger(__name__)
 
-data_type_conv = {
-    '<f4': 'f',
-    '<f8': 'd',
-    '<i4': 'i',
-    '<i8': 'q',
-}
-
 http_regex = re.compile(r'^https?://(.+):\d+/rpc')  # http:// or https://
 
 
 class Client:
     def __init__(self, endpoint: str = 'http://localhost:5993/rpc', grpc: bool = False):
-        if grpc:
-            match = re.findall(http_regex, endpoint)
-
-            # when endpoint is specified in "http://{host}:{port}/rpc" format,
-            # extract the host and initialize GRPC client with default port(5995) for compatibility
-            if len(match) != 0:
-                host = match[0] if match[0] is not "" else "localhost"  # default host is "localhost"
-                self.endpoint = "{}:5995".format(host)  # default port is 5995
-                self.client = GRPCClient(self.endpoint)
-                return
-            else:
-                self.endpoint = endpoint
-                self.client = GRPCClient(self.endpoint)
-                return
-
         self.endpoint = endpoint
-        self.client = JsonRpcClient(self.endpoint)
+        if not grpc:
+            self.client = JsonRpcClient(self.endpoint)
+            return
 
-    def query(self, params: Params) -> QueryReply:
+        # when endpoint is specified in "http://{host}:{port}/rpc" format,
+        # extract the host and initialize GRPC client with default port(5995) for compatibility
+        match = re.findall(http_regex, endpoint)
+        if match:
+            host = match[0] if match[0] != "" else "localhost"  # default host is "localhost"
+            self.endpoint = "{}:5995".format(host)  # default port is 5995
+        self.client = GRPCClient(self.endpoint)
+
+    def query(self, params: Union[Params, List[Params]]) -> QueryReply:
         """
         execute QUERY to MarketStore server
         :param params: Params object used to query
         :return: QueryReply object
         """
         return self.client.query(params)
-
-    def _build_query(self, params: Union[Params, List[Params]]) -> Dict:
-        return self.client.build_query(params)
 
     def write(self, recarray: np.array, tbk: str, isvariablelength: bool = False) -> str:
         """

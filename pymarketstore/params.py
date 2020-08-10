@@ -1,24 +1,7 @@
-from typing import Union, List, Any
-import pandas as pd
-import numpy as np
 from enum import Enum
+from typing import Union, List, Any
 
-
-def get_timestamp(value: Union[int, str]) -> pd.Timestamp:
-    if value is None:
-        return None
-    if isinstance(value, (int, np.integer)):
-        return pd.Timestamp(value, unit='s')
-    return pd.Timestamp(value)
-
-
-def isiterable(something: Any) -> bool:
-    """
-    check if something is a list, tuple or set
-    :param something: any object
-    :return: bool. true if something is a list, tuple or set
-    """
-    return isinstance(something, (list, tuple, set))
+from .utils import get_timestamp, is_iterable
 
 
 class ListSymbolsFormat(Enum):
@@ -37,7 +20,7 @@ class Params(object):
                  start: Union[int, str] = None, end: Union[int, str] = None,
                  limit: int = None, limit_from_start: bool = None,
                  columns: List[str] = None):
-        if not isiterable(symbols):
+        if not is_iterable(symbols):
             symbols = [symbols]
         self.tbk = ','.join(symbols) + "/" + timeframe + "/" + attrgroup
         self.key_category = None  # server default
@@ -56,6 +39,26 @@ class Params(object):
         else:
             setattr(self, key, val)
         return self
+
+    def to_query_request(self) -> dict:
+        query = {'destination': self.tbk}
+        if self.key_category is not None:
+            query['key_category'] = self.key_category
+        if self.start is not None:
+            query['epoch_start'], start_nanos = divmod(self.start.value, 10 ** 9)
+            if start_nanos != 0:
+                query['epoch_start_nanos'] = start_nanos
+        if self.end is not None:
+            query['epoch_end'], end_nanos = divmod(self.end.value, 10 ** 9)
+            if end_nanos != 0:
+                query['epoch_end_nanos'] = end_nanos
+        if self.limit is not None:
+            query['limit_record_count'] = self.limit
+        if self.limit_from_start is not None:
+            query['limit_from_start'] = bool(self.limit_from_start)
+        if self.functions is not None:
+            query['functions'] = self.functions
+        return query
 
     def __repr__(self) -> str:
         content = ('tbk={}, start={}, end={}, '.format(
