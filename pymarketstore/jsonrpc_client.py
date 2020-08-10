@@ -1,37 +1,22 @@
-from __future__ import absolute_import
-
 import logging
-import re
-from typing import Any
-from typing import Union, Dict, List
-
 import numpy as np
-import pandas as pd
+import re
 import requests
+
+from typing import Union, Dict, List
 
 from .jsonrpc import MsgpackRpcClient
 from .params import Params, ListSymbolsFormat
 from .results import QueryReply
 from .stream import StreamConn
+from .utils import is_iterable
 
 logger = logging.getLogger(__name__)
 
 
-def isiterable(something: Any) -> bool:
-    return isinstance(something, (list, tuple, set))
-
-
-def get_timestamp(value: Union[int, str]) -> pd.Timestamp:
-    if value is None:
-        return None
-    if isinstance(value, (int, np.integer)):
-        return pd.Timestamp(value, unit='s')
-    return pd.Timestamp(value)
-
-
 class JsonRpcClient(object):
 
-    def __init__(self, endpoint: str = 'http://localhost:5993/rpc', ):
+    def __init__(self, endpoint: str = 'http://localhost:5993/rpc'):
         self.endpoint = endpoint
         self.rpc = MsgpackRpcClient(self.endpoint)
 
@@ -42,11 +27,13 @@ class JsonRpcClient(object):
             logger.exception(exc)
             raise
 
-    def query(self, params: Params) -> QueryReply:
-        if not isiterable(params):
+    def query(self, params: Union[Params, List[Params]]) -> QueryReply:
+        if not is_iterable(params):
             params = [params]
-        query = self.build_query(params)
-        reply = self._request('DataService.Query', **query)
+
+        reply = self._request('DataService.Query', requests=[
+            p.to_query_request() for p in params
+        ])
         return QueryReply.from_response(reply)
 
     def write(self, recarray: np.array, tbk: str, isvariablelength: bool = False) -> str:
@@ -74,41 +61,6 @@ class JsonRpcClient(object):
         except requests.exceptions.ConnectionError:
             raise requests.exceptions.ConnectionError(
                 "Could not contact server")
-
-    def build_query(self, params: Union[Params, List[Params]]) -> Dict:
-        reqs = []
-        if not isiterable(params):
-            params = [params]
-        for param in params:
-            req = {
-                'destination': param.tbk,
-            }
-            if param.key_category is not None:
-                req['key_category'] = param.key_category
-            if param.start is not None:
-                req['epoch_start'], start_nanosec = divmod(param.start.value, 10 ** 9)
-
-                # support nanosec
-                if start_nanosec != 0:
-                    req['epoch_start_nanos'] = start_nanosec
-
-            if param.end is not None:
-                req['epoch_end'], end_nanosec = divmod(param.end.value, 10 ** 9)
-
-                # support nanosec
-                if end_nanosec != 0:
-                    req['epoch_end_nanos'] = end_nanosec
-
-            if param.limit is not None:
-                req['limit_record_count'] = int(param.limit)
-            if param.limit_from_start is not None:
-                req['limit_from_start'] = bool(param.limit_from_start)
-            if param.functions is not None:
-                req['functions'] = param.functions
-            reqs.append(req)
-        return {
-            'requests': reqs,
-        }
 
     def list_symbols(self, fmt: ListSymbolsFormat = ListSymbolsFormat.SYMBOL) -> List[str]:
         reply = self._request('DataService.ListSymbols', format=fmt.value)
