@@ -31,7 +31,7 @@ class Client:
             # when endpoint is specified in "http://{host}:{port}/rpc" format,
             # extract the host and initialize GRPC client with default port(5995) for compatibility
             if len(match) != 0:
-                host = match[0] if match[0] is not "" else "localhost"  # default host is "localhost"
+                host = match[0] if match[0] != "" else "localhost"  # default host is "localhost"
                 self.endpoint = "{}:5995".format(host)  # default port is 5995
                 self.client = GRPCClient(self.endpoint)
                 return
