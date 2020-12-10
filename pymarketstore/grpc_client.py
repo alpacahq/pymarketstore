@@ -42,7 +42,7 @@ class GRPCClient(object):
 
     def write(self, recarray: np.array, tbk: str, isvariablelength: bool = False) -> proto.MultiServerResponse:
         types = [
-            recarray.dtype[name].str.replace('<', '')
+            recarray.dtype[name].str.replace('<', '').replace('|', '')
             for name in recarray.dtype.names
         ]
         names = recarray.dtype.names

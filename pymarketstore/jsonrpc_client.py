@@ -52,7 +52,7 @@ class JsonRpcClient(object):
     def write(self, recarray: np.array, tbk: str, isvariablelength: bool = False) -> str:
         data = {}
         data['types'] = [
-            recarray.dtype[name].str.replace('<', '')
+            recarray.dtype[name].str.replace('<', '').replace('|', '')
             for name in recarray.dtype.names
         ]
         data['names'] = recarray.dtype.names
