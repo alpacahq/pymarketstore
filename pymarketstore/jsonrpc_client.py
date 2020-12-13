@@ -3,7 +3,7 @@ from __future__ import absolute_import
 import logging
 import re
 from typing import Any
-from typing import Union, Dict, List
+from typing import Union, Dict, List, Tuple
 
 import numpy as np
 import pandas as pd
@@ -48,6 +48,24 @@ class JsonRpcClient(object):
         query = self.build_query(params)
         reply = self._request('DataService.Query', **query)
         return QueryReply.from_response(reply)
+
+    def create(self, tbk: str, dtype: List[Tuple[str, str]], isvariablelength: bool = False) -> str:
+        # dtype: e.g. [('Epoch', 'i8'), ('Ask', 'f4')]
+        req = {
+            "key": "{}:Symbol/Timeframe/AttributeGroup".format(tbk),
+            # e.g. ["Epoch", "Open", "High", "Low", "Close"]
+            "column_names": [name for name, type in dtype],
+            # e.g. ["i8", "f4", "f4", "f4", "f4"]
+            "column_types": [type.replace('<', '').replace('|', '') for name, type in dtype],
+            "row_type": "variable" if isvariablelength else "fixed",
+        }
+
+        writer = {'requests': [req]}
+        try:
+            return self.rpc.call("DataService.Create", **writer)
+        except requests.exceptions.ConnectionError:
+            raise requests.exceptions.ConnectionError(
+                "Could not contact server")
 
     def write(self, recarray: np.array, tbk: str, isvariablelength: bool = False) -> str:
         data = {}
