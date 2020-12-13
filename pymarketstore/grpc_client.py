@@ -10,7 +10,7 @@ from .params import Params, ListSymbolsFormat
 from .results import QueryReply
 
 import numpy as np
-from typing import List, Union
+from typing import List, Union, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -39,6 +39,19 @@ class GRPCClient(object):
         reply = self.stub.Query(reqs)
 
         return QueryReply.from_grpc_response(reply)
+
+    def create(self, tbk: str, dtype: List[Tuple[str, str]], isvariablelength: bool = False) -> str:
+        # dtype: e.g. [('Epoch', 'i8'), ('Ask', 'f4')]
+
+        req = proto.MultiCreateRequest(requests=[
+            proto.CreateRequest(
+                key="{}:Symbol/Timeframe/AttributeGroup".format(tbk),
+                data_shapes=[proto.DataShape(name=name, type=typ) for name, typ in dtype],
+                row_type="variable" if isvariablelength else "fixed",
+            )
+        ])
+
+        return self.stub.Create(req)
 
     def write(self, recarray: np.array, tbk: str, isvariablelength: bool = False) -> proto.MultiServerResponse:
         types = [

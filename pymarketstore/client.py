@@ -2,7 +2,7 @@ from __future__ import absolute_import
 
 import logging
 import re
-from typing import List, Dict, Union
+from typing import List, Dict, Union, Tuple
 
 import numpy as np
 
@@ -53,6 +53,16 @@ class Client:
 
     def _build_query(self, params: Union[Params, List[Params]]) -> Dict:
         return self.client.build_query(params)
+
+    def create(self, tbk: str, dtype: List[Tuple[str, str]], isvariablelength: bool = False) -> str:
+        """
+        create a new bucket
+        :param tbk: Time Bucket Key string. (e.g. TSLA/1Min/OHLCV )
+        :param  dtype: data shapes of the bucket (e.g. [("Epoch", "i8"), ("Bid", "f4"), ("Ask", "f4")] )
+        :param isvariablelength: should be set true if the record content is variable-length array
+        :return: str
+        """
+        return self.client.create(tbk=tbk, dtype=dtype, isvariablelength=isvariablelength)
 
     def write(self, recarray: np.array, tbk: str, isvariablelength: bool = False) -> str:
         """
