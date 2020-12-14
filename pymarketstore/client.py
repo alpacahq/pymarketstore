@@ -54,7 +54,7 @@ class Client:
     def _build_query(self, params: Union[Params, List[Params]]) -> Dict:
         return self.client.build_query(params)
 
-    def create(self, tbk: str, dtype: List[Tuple[str, str]], isvariablelength: bool = False) -> str:
+    def create(self, tbk: str, dtype: List[Tuple[str, str]], isvariablelength: bool = False):
         """
         create a new bucket
         :param tbk: Time Bucket Key string. (e.g. TSLA/1Min/OHLCV )
