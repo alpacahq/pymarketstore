@@ -49,7 +49,7 @@ class JsonRpcClient(object):
         reply = self._request('DataService.Query', **query)
         return QueryReply.from_response(reply)
 
-    def create(self, tbk: str, dtype: List[Tuple[str, str]], isvariablelength: bool = False) -> str:
+    def create(self, tbk: str, dtype: List[Tuple[str, str]], isvariablelength: bool = False) -> dict:
         # dtype: e.g. [('Epoch', 'i8'), ('Ask', 'f4')]
         req = {
             "key": "{}:Symbol/Timeframe/AttributeGroup".format(tbk),

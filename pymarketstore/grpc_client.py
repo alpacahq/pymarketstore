@@ -40,7 +40,8 @@ class GRPCClient(object):
 
         return QueryReply.from_grpc_response(reply)
 
-    def create(self, tbk: str, dtype: List[Tuple[str, str]], isvariablelength: bool = False) -> str:
+    def create(self, tbk: str, dtype: List[Tuple[str, str]],
+               isvariablelength: bool = False) -> proto.MultiServerResponse:
         # dtype: e.g. [('Epoch', 'i8'), ('Ask', 'f4')]
 
         req = proto.MultiCreateRequest(requests=[
