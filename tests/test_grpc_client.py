@@ -31,6 +31,20 @@ def test_query(stub):
 
 
 @patch('pymarketstore.proto.marketstore_pb2_grpc.MarketstoreStub')
+def test_create(stub):
+    # --- given ---
+    c = pymkts.GRPCClient()
+    dtype = [('Epoch', 'i8'), ('Bid', 'f4'), ('Ask', 'f4')]
+    tbk = 'TEST/1Min/TICK'
+
+    # --- when ---
+    c.create(tbk=tbk, dtype=dtype, isvariablelength=False)
+
+    # --- then ---
+    assert c.stub.Create.called == 1
+
+
+@patch('pymarketstore.proto.marketstore_pb2_grpc.MarketstoreStub')
 def test_write(stub):
     # --- given ---
     c = pymkts.GRPCClient()
@@ -80,6 +94,7 @@ def test_destroy(stub):
 
     # --- then ---
     assert c.stub.Destroy.called == 1
+
 
 @patch('pymarketstore.proto.marketstore_pb2_grpc.MarketstoreStub')
 def test_server_version(stub):
