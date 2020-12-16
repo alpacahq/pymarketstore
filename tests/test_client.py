@@ -42,6 +42,15 @@ def test_query(MsgpackRpcClient):
 
 
 @patch('pymarketstore.jsonrpc_client.MsgpackRpcClient')
+def test_create(MsgpackRpcClient):
+    c = pymkts.Client()
+    dtype = [('Epoch', 'i8'), ('Bid', 'f4'), ('Ask', 'f4')]
+    tbk = 'TEST/1Min/TICK'
+    c.create(tbk=tbk, dtype=dtype, isvariablelength=False)
+    assert MsgpackRpcClient().call.called == 1
+
+
+@patch('pymarketstore.jsonrpc_client.MsgpackRpcClient')
 def test_write(MsgpackRpcClient):
     c = pymkts.Client()
     data = np.array([(1, 0)], dtype=[('Epoch', 'i8'), ('Ask', 'f4')])
