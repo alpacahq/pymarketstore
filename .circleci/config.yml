@@ -1,6 +1,6 @@
 version: 2
 jobs:
-  build-python36:
+  build:
     docker:
       - image: python:3.6.10
     working_directory: ~/repo
@@ -73,7 +73,7 @@ workflows:
   version: 2
   build:
     jobs:
-      - build-python36
+      - build
 
   deploy:
     jobs:
