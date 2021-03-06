@@ -44,11 +44,11 @@ jobs:
       - image: python:3.6.10
     working_directory: ~/repo
     steps:
+      - checkout
+
       - run:
           name: verify git tag vs. version
           command: |
-            python3 -m venv venv
-            . venv/bin/activate
             python setup.py verify
 
       - run:
@@ -61,12 +61,13 @@ jobs:
       - run:
           name: create packages
           command: |
-            make package
+            python setup.py sdist # create a source distribution
+            python setup.py bdist_wheel # create a wheel
 
       - run:
           name: upload to pypi
           command: |
-            . venv/bin/activate
+            pip install twine
             twine upload dist/*
 
 workflows:
