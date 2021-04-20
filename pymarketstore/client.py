@@ -51,6 +51,14 @@ class Client:
         """
         return self.client.query(params)
 
+    def sql(self, statements: Union[str, List[str]]) -> QueryReply:
+        """
+        execute SQL to MarketStore server
+        :param statements: List of SQL statements in a string
+        :return: QueryReply object
+        """
+        return self.client.sql(statements)
+
     def _build_query(self, params: Union[Params, List[Params]]) -> Dict:
         return self.client.build_query(params)
 

@@ -49,6 +49,22 @@ class JsonRpcClient(object):
         reply = self._request('DataService.Query', **query)
         return QueryReply.from_response(reply)
 
+    def sql(self, statements: Union[str, List[str]]) -> QueryReply:
+        if not isiterable(statements):
+            statements = [statements]
+
+        reqs: List[Dict] = []
+        for statement in statements:
+            req = {
+                "is_sqlstatement": True,
+                "sql_statement": statement,
+            }
+            reqs.append(req)
+
+        param = {'requests': reqs}
+        reply = self._request('DataService.Query', **param)
+        return QueryReply.from_response(reply)
+
     def create(self, tbk: str, dtype: List[Tuple[str, str]], isvariablelength: bool = False) -> dict:
         # dtype: e.g. [('Epoch', 'i8'), ('Ask', 'f4')]
         req = {
