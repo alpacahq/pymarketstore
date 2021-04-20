@@ -29,6 +29,17 @@ def test_query(stub):
     # --- then ---
     assert c.stub.Query.called == 1
 
+@patch('pymarketstore.proto.marketstore_pb2_grpc.MarketstoreStub')
+def test_sql(stub):
+    # --- given ---
+    c = pymkts.GRPCClient()
+    s = "SELECT * FROM `BTC/1Min/OHLCV`"
+
+    # --- when ---
+    c.sql(s)
+
+    # --- then ---
+    assert c.stub.Query.called == 1
 
 @patch('pymarketstore.proto.marketstore_pb2_grpc.MarketstoreStub')
 def test_create(stub):
