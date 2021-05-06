@@ -1,4 +1,4 @@
-msgpack-python
+msgpack==1.0.2
 numpy
 pandas
 requests
