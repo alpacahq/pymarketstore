@@ -8,4 +8,4 @@ Param = Params  # noqa
 
 from .stream import StreamConn  # noqa
 
-__version__ = '0.18'
+__version__ = '0.19'
