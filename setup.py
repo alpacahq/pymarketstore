@@ -43,13 +43,12 @@ setup(
     keywords='database,pandas,financial,timeseries',
     packages=find_packages(exclude=('tests', 'docs')),
     install_requires=[
-        'msgpack-python',
+        'msgpack',
         'numpy',
         'requests',
         'pandas',
         'six',
         'urllib3',
-        'pytest',
         'websocket-client',
         'protobuf>=3.11.3',
         'grpcio'

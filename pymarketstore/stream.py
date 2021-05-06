@@ -28,7 +28,7 @@ class StreamConn(object):
             self._subscribe(ws, streams)
             while True:
                 r = ws.recv()
-                msg = msgpack.loads(r, encoding='utf-8')
+                msg = msgpack.loads(r)
                 key = msg.get('key')
                 if key is not None:
                     self._dispatch(key, msg)
