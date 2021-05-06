@@ -48,7 +48,7 @@ class MsgpackRpcClient(object):
             return http_resp
 
         http_resp.raise_for_status()
-        return self.codec.loads(http_resp.content)
+        return msgpack.loads(http_resp.content)
 
     @staticmethod
     def _rpc_response(reply: Dict) -> str:
