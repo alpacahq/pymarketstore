@@ -40,6 +40,22 @@ class GRPCClient(object):
 
         return QueryReply.from_grpc_response(reply)
 
+    def sql(self, statements: Union[str, List[str]]) -> QueryReply:
+        if not isiterable(statements):
+            statements = [statements]
+
+        reqs = proto.MultiQueryRequest(requests=[])
+
+        for statement in statements:
+            req = proto.QueryRequest(
+                is_sql_statement=True,
+                sql_statement=statement,
+            )
+            reqs.requests.append(req)
+
+        reply = self.stub.Query(reqs)
+        return QueryReply.from_grpc_response(reply)
+
     def create(self, tbk: str, dtype: List[Tuple[str, str]],
                isvariablelength: bool = False) -> proto.MultiServerResponse:
         # dtype: e.g. [('Epoch', 'i8'), ('Ask', 'f4')]

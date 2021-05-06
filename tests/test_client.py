@@ -42,6 +42,14 @@ def test_query(MsgpackRpcClient):
 
 
 @patch('pymarketstore.jsonrpc_client.MsgpackRpcClient')
+def test_sql(MsgpackRpcClient):
+    c = pymkts.Client()
+    s = "SELECT * FROM `BTC/1Min/OHLCV`"
+    c.sql(s)
+    assert MsgpackRpcClient().call.called == 1
+
+
+@patch('pymarketstore.jsonrpc_client.MsgpackRpcClient')
 def test_create(MsgpackRpcClient):
     c = pymkts.Client()
     dtype = [('Epoch', 'i8'), ('Bid', 'f4'), ('Ask', 'f4')]
