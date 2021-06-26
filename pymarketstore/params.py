@@ -36,7 +36,7 @@ class Params(object):
     def __init__(self, symbols: Union[List[str], str], timeframe: str, attrgroup: str,
                  start: Union[int, str] = None, end: Union[int, str] = None,
                  limit: int = None, limit_from_start: bool = None,
-                 columns: List[str] = None):
+                 columns: List[str] = None, functions: List[str] = None):
         if not isiterable(symbols):
             symbols = [symbols]
         self.tbk = ','.join(symbols) + "/" + timeframe + "/" + attrgroup
@@ -46,7 +46,7 @@ class Params(object):
         self.limit = limit
         self.limit_from_start = limit_from_start
         self.columns = columns
-        self.functions = None
+        self.functions = functions
 
     def set(self, key: str, val: Any):
         if not hasattr(self, key):
