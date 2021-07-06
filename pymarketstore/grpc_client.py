@@ -137,7 +137,7 @@ class GRPCClient(object):
             if param.limit_from_start is not None:
                 req.limit_from_start = bool(param.limit_from_start)
             if param.functions is not None:
-                req.functions = param.functions
+                req.functions.extend(param.functions)
             reqs.requests.append(req)
         return reqs
 
