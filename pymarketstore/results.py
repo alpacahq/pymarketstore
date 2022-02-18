@@ -1,10 +1,12 @@
-from typing import List, Dict
+from __future__ import annotations
+from typing import List, Dict, TYPE_CHECKING
 
 import numpy as np
 import pandas as pd
 import six
 
-import pymarketstore.proto.marketstore_pb2 as proto
+if TYPE_CHECKING:
+    import pymarketstore.proto.marketstore_pb2 as proto
 
 
 def decode(column_names: List[str], column_types: List[str], column_data, data_length) -> np.ndarray:
@@ -122,7 +124,10 @@ class QueryReply(object):
         return cls([QueryResult(result, resp['timezone']) for result in results], resp['timezone'])
 
     @classmethod
-    def from_grpc_response(cls, resp: proto.MultiQueryResponse):  # ->QueryReply:
+    def from_grpc_response(
+        cls,
+        resp: proto.MultiQueryResponse
+    ):  # ->QueryReply:
         results = decode_grpc_responses(resp.responses)
         return cls([QueryResult(result, resp.timezone) for result in results], resp.timezone)
 
