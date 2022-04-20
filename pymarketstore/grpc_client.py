@@ -139,7 +139,7 @@ class GRPCClient(object):
             if param.functions is not None:
                 req.functions.extend(param.functions)
             if param.columns is not None:
-                req.columns = param.columns
+                req.columns.extend(param.columns)
             reqs.requests.append(req)
         return reqs
 
