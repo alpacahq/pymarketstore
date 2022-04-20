@@ -139,6 +139,8 @@ class JsonRpcClient(object):
                 req['limit_from_start'] = bool(param.limit_from_start)
             if param.functions is not None:
                 req['functions'] = param.functions
+            if param.columns is not None:
+                req['columns'] = param.columns
             reqs.append(req)
         return {
             'requests': reqs,
