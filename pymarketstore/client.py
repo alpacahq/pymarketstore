@@ -2,11 +2,10 @@ from __future__ import absolute_import
 
 import logging
 import re
-from typing import List, Dict, Union, Tuple
+from typing import List, Dict, Union, Tuple, Any
 
 import numpy as np
 
-from .grpc_client import GRPCClient
 from .jsonrpc_client import JsonRpcClient
 from .params import Params, ListSymbolsFormat
 from .results import QueryReply
@@ -23,9 +22,33 @@ data_type_conv = {
 http_regex = re.compile(r'^https?://(.+):\d+/rpc')  # http:// or https://
 
 
+class RequestError(Exception):
+    "Generic client error"
+
+
+def err_on_resp(response: dict) -> None:
+    """
+    Raise any errors found in responses from client request.
+    """
+    responses = response['responses']
+    if responses is not None:
+        for r in responses:
+            err = r['error']
+            if err:
+                raise RequestError(err)
+
+
 class Client:
-    def __init__(self, endpoint: str = 'http://localhost:5993/rpc', grpc: bool = False):
+    def __init__(
+        self,
+        endpoint: str = 'http://localhost:5993/rpc',
+        grpc: bool = False,
+        raise_errors: bool = False,
+
+    ) -> None:
+        self._raise_errors = raise_errors
         if grpc:
+            from .grpc_client import GRPCClient
             match = re.findall(http_regex, endpoint)
 
             # when endpoint is specified in "http://{host}:{port}/rpc" format,
@@ -43,13 +66,29 @@ class Client:
         self.endpoint = endpoint
         self.client = JsonRpcClient(self.endpoint)
 
+    def _maybe_raise(
+        self,
+        result: Any,
+    ) -> Any:
+        """
+        If an error response is received back from the server, raise a
+        local ``RequestError`` with its contents.
+
+        """
+        if not self._raise_errors:
+            return result
+        else:
+            return err_on_resp(result)
+
     def query(self, params: Params) -> QueryReply:
         """
         execute QUERY to MarketStore server
         :param params: Params object used to query
         :return: QueryReply object
         """
-        return self.client.query(params)
+        return self._maybe_raise(
+            self.client.query(params)
+        )
 
     def sql(self, statements: Union[str, List[str]]) -> QueryReply:
         """
@@ -57,7 +96,9 @@ class Client:
         :param statements: List of SQL statements in a string
         :return: QueryReply object
         """
-        return self.client.sql(statements)
+        return self._maybe_raise(
+            self.client.sql(statements)
+        )
 
     def _build_query(self, params: Union[Params, List[Params]]) -> Dict:
         return self.client.build_query(params)
@@ -70,7 +111,9 @@ class Client:
         :param isvariablelength: should be set true if the record content is variable-length array
         :return: str
         """
-        return self.client.create(tbk=tbk, dtype=dtype, isvariablelength=isvariablelength)
+        return self._maybe_raise(
+            self.client.create(tbk=tbk, dtype=dtype, isvariablelength=isvariablelength)
+        )
 
     def write(self, recarray: np.array, tbk: str, isvariablelength: bool = False) -> str:
         """
@@ -81,16 +124,22 @@ class Client:
         :param isvariablelength: should be set true if the record content is variable-length array
         :return:
         """
-        return self.client.write(recarray, tbk, isvariablelength=isvariablelength)
+        return self._maybe_raise(
+            self.client.write(recarray, tbk, isvariablelength=isvariablelength)
+        )
 
     def list_symbols(self, fmt: ListSymbolsFormat = ListSymbolsFormat.SYMBOL) -> List[str]:
         return self.client.list_symbols(fmt)
 
     def destroy(self, tbk: str) -> Dict:
-        return self.client.destroy(tbk)
+        return self._maybe_raise(
+            self.client.destroy(tbk)
+        )
 
     def server_version(self) -> str:
-        return self.client.server_version()
+        return self._maybe_raise(
+            self.client.server_version()
+        )
 
     def __repr__(self):
         return self.client.__repr__()
