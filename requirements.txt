@@ -7,5 +7,5 @@ urllib3
 pytest
 setuptools>=28.8.0
 websocket-client
-protobuf==4.21.5
+protobuf==4.21.6
 grpcio==1.28.1
